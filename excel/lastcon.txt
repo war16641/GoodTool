@@ -1,0 +1,9 @@
+t.xlsx
+处理后
+{'Frame'}
+{'P','max';}
+汇总表1
+{'Station','OutputCase','CaseType','StepType','V2','V3','T','M2','M3','FrameElem','ElemStation'}
+[1]
+[]
+[2]
