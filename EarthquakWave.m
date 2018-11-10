@@ -11,16 +11,18 @@ classdef EarthquakWave<handle
     
     methods
         function obj = EarthquakWave(tn0,accn0,unit,note)
-            %UNTITLED2 构造此类的实例
+            %unit 使用string
             %   此处显示详细说明
-            if nargin==2;
-                unit='m/s^2';
+            if nargin==2
+                unit="m/s^2";%默认是m/s^2
                 note='';
-            elseif nargin==3;
+            elseif nargin==3
+                validStrings = ["m/s^2","gal","g"];
+                validatestring(unit,validStrings);
                 note='';
             end
-            obj.tn=ColumnVector(tn0);
-            obj.accn=ColumnVector(accn0);
+            obj.tn=VectorDirection(tn0);
+            obj.accn=VectorDirection(accn0);
             obj.unit=unit;
             obj.note=note;
         end
@@ -50,19 +52,58 @@ classdef EarthquakWave<handle
             for it=1:length(obj)
                 disp(['类型=' class(obj(it))]);
                 disp(['内含' num2str(length(obj(it).tn)) '个点']);
-                disp(['note=' obj(it).note] );
-                disp(['unit=' obj(it).unit] );
+                disp(['note=' char(obj(it).note)] );
+                disp(['unit=' char(obj(it).unit)] );
             end
             
         end
-    end
-    
-    methods(Static)%静态方法 可用的单位
-        function units=ValidUnit()
-            units.m='m/s^2';
-            units.cm='cm/s^2';
-            units.g='g';
+        function [period,peakv]=ResponseSpectra(obj,periodstart,periodend,type,dampratio,num)
+            %获取反应谱
+            % type 可选sd psv psa
+            %dampratio阻尼比
+            %num 是反应谱点个数
+            
+            %检查单位是标准单位
+            if ~strcmp("m/s^2",obj.unit)
+                error('单位不对，只能是m/s^2')
+            end
+            if 7==nargin
+                num=200;
+            end
+            
+            m=1;
+            pn=-m*obj.accn;
+            period=linspace(periodstart,periodend,num);
+            peakv=zeros(1,num);
+            it=1;
+            for period1=period
+                k=4*pi^2*m/period1^2;
+                %c=2*m*w*0.00;% 0.01阻尼比
+                [~,v,dv,ddv]=SegmentalPrecision1_SDOF(k,m,obj.tn,pn,'ratio',dampratio,0,0);
+                %peakacc(it)=k*max(v)/m;
+                %peakacc(it)=max(v);
+                %peakacc(it)=max(dv);
+                
+                switch type
+                    case 'sd'
+                        peakv(it)=AbsMax(v,1);%相对位移谱
+                    case 'psv'
+                        peakv(it)=AbsMax(dv,1);%拟相对速度谱
+                    case 'psa'
+                        peakv(it)=AbsMax(ddv'+obj.accn,1);%拟加速度反应谱
+                    otherwise
+                        error('sdddd')
+                end
+                it=it+1;
+            end
+            figure
+            plot(period,peakv);
+            title(type);
+            xlabel('周期/s');ylabel('谱值')
         end
     end
+    
+    
+    
 end
 
