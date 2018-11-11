@@ -97,7 +97,16 @@ classdef HANDLE_CLASS_MANAGER<handle
             end
             obj.objects.disp();
         end
-
+        function flag=IsExist(obj,og)%检查对象o是否在数组中
+            for it=1:obj.num
+                if isequal(obj.objects(it),og)
+                    flag=true;
+                    return ;
+                end
+            end
+            flag=false;
+            return ;
+        end
 
     end
     properties(Constant,Hidden)

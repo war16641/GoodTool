@@ -26,25 +26,29 @@ classdef EarthquakWave<handle
             obj.unit=unit;
             obj.note=note;
         end
-        
+        function SwitchUnit(obj)
+            %将单位化为标准单位
+            if strcmp("m/s^2",obj.unit)
+                return;
+            end
+            switch char(obj.unit)
+                case 'gal'
+                    obj.unit="m/s^2";
+                    obj.accn=obj.accn/100;
+                case 'g'
+                    obj.unit="m/s^2";
+                    obj.accn=obj.accn*9.816;%默认重力加速度为9.816m/s^2
+                otherwise
+                    error('sd');
+            end
+        end
         function Show(obj)
             %以图窗的形式 展示数据
             for it=1:length(obj)
                 figure;
                 plot(obj(it).tn,obj(it).accn);
-                xlabel('time(s)');ylabel(['acceleration(' obj(it).unit  ')']);title(obj(it).note);
+                xlabel('time(s)');ylabel(['acceleration(' char(obj(it).unit)  ')']);title(obj(it).note);
             end
-            %             if length(obj)~=1
-            %                 for it=1:length(obj)
-            %                     figure;
-            %                     plot(obj(it).tn,obj(it).accn);
-            %                     xlabel('time(s)');ylabel(['acceleration(' obj(it).unit  ')']);title(obj(it).note);
-            %                 end
-            %                 break;
-            %             end
-            %             figure;
-            %             plot(obj.tn,obj.accn);
-            %             xlabel('time(s)');ylabel(['acceleration(' obj.unit  ')']);title(obj.note);
         end
         function disp(obj)
             [m,n]=size(obj);
