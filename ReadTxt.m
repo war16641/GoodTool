@@ -2,7 +2,7 @@ function dt=ReadTxt(filename,numofcol,numlineomitted)
 %读取Txt
 dbstop if error
 fid=fopen(filename,'r');
-fid=omitlines(fid,numlineomitted);%ansys 输出文件 前6行是表头
+fid=omitlines(fid,numlineomitted);
 gesi='';
 for it=1:numofcol
     gesi=[gesi '%f '];

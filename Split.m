@@ -15,4 +15,11 @@ for it=1:length(str)
         
     end
 end
+
+%处理最后一个数据
+if qidian~=length(str)+1%还有最后一个数据
+    substr=[substr str(qidian:length(str))];
+end
+
+
 end

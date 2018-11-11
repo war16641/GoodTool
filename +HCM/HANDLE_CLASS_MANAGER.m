@@ -91,6 +91,7 @@ classdef HANDLE_CLASS_MANAGER<handle
             disp(['管理对象：' obj.classname]);
             disp(['管理对象标识符：' obj.identifier]);
             disp(['管理对象数量：' num2str(obj.num)]);
+            disp(['_________________开始打印对象数组信息_________________'])
             if length(obj)>1||obj.num==0
                 %warning('对象数量不为1，暂不支持输出');
                 return;
