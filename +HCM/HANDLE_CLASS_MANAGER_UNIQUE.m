@@ -24,7 +24,7 @@ classdef HANDLE_CLASS_MANAGER_UNIQUE<HCM.HANDLE_CLASS_MANAGER
             if 1==length(varargin)
                 if isa(varargin{1},obj.classname)
                     %ÅÐ¶Ï»¥³â
-                    idadd=HANDLE_CLASS_MANAGER.GetIdentifier(varargin{1},obj.identifier);
+                    idadd=obj.GetIdentifier(varargin{1},obj.identifier);
                     [r,i]=IsIn(idadd,obj.identifiers);
                     if r==true
                         %ÒÑÓÐ
