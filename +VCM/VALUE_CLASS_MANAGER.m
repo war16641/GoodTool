@@ -1,6 +1,7 @@
 classdef VALUE_CLASS_MANAGER<handle
     %值类管理器
     %管理对象object是n*2的cell 第一列是id 第二列是值类
+    %这个类管理的是内存占用较小的数据 比如小数值矩阵
     
     properties
         object cell%管理对象
@@ -18,6 +19,7 @@ classdef VALUE_CLASS_MANAGER<handle
         end
         function o=Get(obj,type,arg1)
             %type是'index'和'id'
+            %未找到返回空矩阵
             switch type(1:2)
                 case 'in'%通过索引
                     o=obj.object{arg1,2};
@@ -29,13 +31,23 @@ classdef VALUE_CLASS_MANAGER<handle
                             return;
                         end
                     end
-                    error('未找到')
+                    o=[];
+                    return;
                 otherwise
                     error('未知类型')
             end
         end
+        function [index]=FindId(obj,id)%判断id是否在数组中 如果不存在就返回0
+            %挨个遍历
+            for it=1:obj.num
+                if isequal(id,obj.object{it,1})
+                    index=it;
+                    return;
+                end
+                index=0;
+            end
+        end
         
-
     end
     methods(Access=protected)
         function Append(obj,id,newobj)
@@ -44,7 +56,7 @@ classdef VALUE_CLASS_MANAGER<handle
         end
         function Insert(obj,index,id,newobj)
             %在insert之后插入一个
-            obj.objects=[obj.objects(1:index,:) ;{id,newobj}; obj.objects(index+1:end)];
+            obj.object=[obj.object(1:index,:) ;{id,newobj}; obj.object(index+1:end,:)];
             obj.num=obj.num+1;
         end
         function Overwrite(obj,type,arg1,newobj)
