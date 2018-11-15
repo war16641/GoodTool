@@ -47,13 +47,15 @@ classdef VALUE_CLASS_MANAGER<handle
                 index=0;
             end
         end
-        
-    end
-    methods(Access=protected)
         function Append(obj,id,newobj)
+            %本来这个函数是保护的
+            %但是如果用户已知被添加的数据一定是有序的 直接调用更快
             obj.object=[obj.object;{id,{newobj}}];
             obj.num=obj.num+1;
         end
+    end
+    methods(Access=protected)
+
         function Insert(obj,index,id,newobj)
             %在insert之后插入一个
             obj.object=[obj.object(1:index,:) ;{id,newobj}; obj.object(index+1:end,:)];

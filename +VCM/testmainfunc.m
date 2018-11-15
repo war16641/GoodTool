@@ -33,6 +33,7 @@ toc
 if findcounter~=vcm.num
     error('б╘ак')
 end
+vcm.Check();
 figure
 plot(goal,goalfindtime);
 
@@ -64,6 +65,7 @@ toc
 if findcounter~=vcm.num
     error('б╘ак')
 end
+%vcm.Check();
 figure
 plot(goal,goalfindtime);
 end

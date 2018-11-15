@@ -112,11 +112,13 @@ classdef VALUE_CLASS_MANAGER_UNIQUE_SORTED<VCM.VALUE_CLASS_MANAGER
             switch type(1:2)
                 case 'in'%通过索引
                     o=obj.object{arg1,2};
+                    o=o{1};
                     return;
                 case 'id'%通过id 算法较慢
                     index=obj.FindId(arg1);
                     if index~=0
                         o=obj.object{index,2};
+                        o=o{1};
                         return;
                     end
                     o=[];
@@ -124,6 +126,31 @@ classdef VALUE_CLASS_MANAGER_UNIQUE_SORTED<VCM.VALUE_CLASS_MANAGER
                 otherwise
                     error('未知类型')
             end
+        end
+        function Check(obj)%检查 有无重复id 是否是升序 数量是否对
+            ids=obj.object(:,1);
+            if isa(ids{1},'double')
+                ids=cell2mat(ids);
+            end
+            [~,ia,~]=unique(ids);
+            if length(ia)~=obj.num
+                error('有重复id')
+            end
+            
+            if 1==obj.num%一个不用检查
+                return;
+            end
+            for it=1:obj.num-1
+                r=obj.CompareSize(obj.object{it,1},obj.object{it+1,1});
+                if r(1)~='s'
+                    error('不是升序')
+                end
+            end
+            
+            if obj.num~=size(obj.object,1)
+                error('数量不对')
+            end
+            
         end
     end
     methods(Static)
