@@ -58,19 +58,19 @@ classdef VALUE_CLASS_MANAGER<handle
 
         function Insert(obj,index,id,newobj)
             %在insert之后插入一个
-            obj.object=[obj.object(1:index,:) ;{id,newobj}; obj.object(index+1:end,:)];
+            obj.object=[obj.object(1:index,:) ;{id,{newobj}}; obj.object(index+1:end,:)];
             obj.num=obj.num+1;
         end
         function Overwrite(obj,type,arg1,newobj)
             %type可以是 'index' 和'id'
             switch type(1:2)
                 case 'in'%通过索引
-                    obj.object(arg1,2)={newobj};
+                    obj.object{arg1,2}={newobj};
                     return;
                 case 'id'%通过id 算法较慢
                     for it=1:obj.num
                         if arg1==obj.object{it,1}
-                            obj.object(it,2)={newobj};
+                            obj.object{it,2}={newobj};
                             return;
                         end
                     end

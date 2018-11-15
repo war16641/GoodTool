@@ -19,8 +19,9 @@ classdef VALUE_CLASS_MANAGER_UNIQUE_SORTED<VCM.VALUE_CLASS_MANAGER
             else%已有
                 if 1==overwrite
                     obj.Overwrite('index',index,newobj);%覆盖
+                    disp(['覆盖' id])%这一句只是提示 可以不用输出
                 end
-                disp('此id已有')%这一句只是提示 可以不用输出
+%                 disp('此id已有')%这一句只是提示 可以不用输出
             end
         end
         function [index,after]=FindId(obj,id)%判断id是否在数组中 如果不存在就返回0
@@ -107,20 +108,25 @@ classdef VALUE_CLASS_MANAGER_UNIQUE_SORTED<VCM.VALUE_CLASS_MANAGER
            end
            
         end
-        function o=Get(obj,type,arg1)
+        function [o,id]=Get(obj,type,arg1)
             %type是'index'和'id'
+            %o 返回对象 没有返回空矩阵
+            %id是对应的id 没有返回空矩阵
             switch type(1:2)
                 case 'in'%通过索引
                     o=obj.object{arg1,2};
                     o=o{1};
+                    id=obj.object{arg1,1};
                     return;
                 case 'id'%通过id 算法较慢
                     index=obj.FindId(arg1);
                     if index~=0
                         o=obj.object{index,2};
                         o=o{1};
+                        id=obj.object{index,1};
                         return;
                     end
+                    id=[];
                     o=[];
                     return;
                 otherwise
