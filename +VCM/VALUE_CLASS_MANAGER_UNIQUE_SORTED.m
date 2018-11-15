@@ -8,20 +8,32 @@ classdef VALUE_CLASS_MANAGER_UNIQUE_SORTED<VCM.VALUE_CLASS_MANAGER
         function obj = VALUE_CLASS_MANAGER_UNIQUE_SORTED()
             obj=obj@VCM.VALUE_CLASS_MANAGER();
         end
-        function Add(obj,id,newobj,overwrite)
+        function [success,isoverwrite]=Add(obj,id,newobj,overwrite)
+            %success 是否添加成功
+            %isoverwrite 是否覆盖添加
             %overwrite指定：如果遇到id存在是否覆盖
+            success=0;
+            isoverwrite=0;
             if nargin==3
                 overwrite=0;%默认不覆盖
             end
             [index,after]=obj.FindId(id);
             if index==0%没有id
                 obj.Insert(after,id,newobj);%插入一个
+                success=1;
+                isoverwrite=0;
             else%已有
                 if 1==overwrite
                     obj.Overwrite('index',index,newobj);%覆盖
                     disp(['覆盖' id])%这一句只是提示 可以不用输出
+                    success=1;
+                    isoverwrite=1;
+                    return;
                 end
+                success=0;
+                isoverwrite=0;
 %                 disp('此id已有')%这一句只是提示 可以不用输出
+
             end
         end
         function [index,after]=FindId(obj,id)%判断id是否在数组中 如果不存在就返回0
@@ -33,12 +45,14 @@ classdef VALUE_CLASS_MANAGER_UNIQUE_SORTED<VCM.VALUE_CLASS_MANAGER
             end
             rg=[1 obj.num];%潜在的范围
             after=-1;%默认值
-            if id<=obj.num&&id>0
-                %尝试直接用序号=id判断
-                r=obj.CompareSize(id,obj.object{id,1});
-                if r(1)=='e'
-                    index=id;
-                    return;
+            if isa(id,'double')
+                if id<=obj.num&&id>0
+                    %尝试直接用序号=id判断
+                    r=obj.CompareSize(id,obj.object{id,1});
+                    if r(1)=='e'
+                        index=id;
+                        return;
+                    end
                 end
             end
             
