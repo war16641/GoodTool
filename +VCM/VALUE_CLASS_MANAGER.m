@@ -23,11 +23,13 @@ classdef VALUE_CLASS_MANAGER<handle
             switch type(1:2)
                 case 'in'%通过索引
                     o=obj.object{arg1,2};
+                    o=o{1};
                     return;
                 case 'id'%通过id 算法较慢
                     for it=1:obj.num
                         if arg1==obj.object{it,1}
                             o=obj.object{it,2};
+                            o=o{1};
                             return;
                         end
                     end
