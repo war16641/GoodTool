@@ -2,7 +2,8 @@ function [K,M,C]=ReadAnsysMatrix()
 %一口气同时读完三个矩阵
 if nargout==1
     [K,~]=HBFILEREAD('stiff.txt');
-elseif nargout==2[K,~]=HBFILEREAD('stiff.txt');
+elseif nargout==2
+    [K,~]=HBFILEREAD('stiff.txt');
 [M,~]=HBFILEREAD('mass.txt');
 elseif nargout==3
     [K,~]=HBFILEREAD('stiff.txt');

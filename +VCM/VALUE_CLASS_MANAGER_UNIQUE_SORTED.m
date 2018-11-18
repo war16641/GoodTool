@@ -46,9 +46,10 @@ classdef VALUE_CLASS_MANAGER_UNIQUE_SORTED<VCM.VALUE_CLASS_MANAGER
             rg=[1 obj.num];%潜在的范围
             after=-1;%默认值
             if isa(id,'double')
-                if id<=obj.num&&id>0
+                if id<=obj.num&&id>0&&fix(id)==id
                     %尝试直接用序号=id判断
                     r=obj.CompareSize(id,obj.object{id,1});
+                    
                     if r(1)=='e'
                         index=id;
                         return;
@@ -148,6 +149,9 @@ classdef VALUE_CLASS_MANAGER_UNIQUE_SORTED<VCM.VALUE_CLASS_MANAGER
             end
         end
         function Check(obj)%检查 有无重复id 是否是升序 数量是否对
+            if 0==obj.num%无需检查
+                return;
+            end
             ids=obj.object(:,1);
             if isa(ids{1},'double')
                 ids=cell2mat(ids);
