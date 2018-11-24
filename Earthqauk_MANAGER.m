@@ -65,6 +65,20 @@ classdef Earthqauk_MANAGER<HCM.HANDLE_CLASS_MANAGER
             legend(le)
        
         end
+        function ComparePSD(obj)
+            figure;
+            hold on
+            le={};
+            for it=1:obj.num
+                [p,f]=obj.objects(it).PSD(0);
+                plot(f,p);
+                le=[le obj.objects(it).note];
+            end
+            title('PSD');
+            xlabel('频率/Hz');
+            legend(le)
+%             set(gca,'yscale','log');%改为对数坐标
+        end
     end
 end
 

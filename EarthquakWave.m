@@ -194,6 +194,26 @@ classdef EarthquakWave<handle
 
 
         end
+        function [power,f]=PSD(obj,flag_draw)%功率谱
+            %使用内置函数periodogram求功率谱估计，是一种估计、
+            %我的使用观察经验：此函数会放小功率 以此代价来抹除噪声的影响。
+            %使用要求：时间序列一定是等差数列 函数内部不会检查这个
+            if nargin==1
+                flag_draw=1;%默认做图
+            end
+            Fs=1/(obj.tn(2)-obj.tn(1));%用前两个数求频率
+            [power,f]=periodogram(obj.accn,ones(length(obj.accn),1),length(obj.accn),Fs); %直接法
+            if isequal(flag_draw,1)%做图
+                figure;
+                plot(f,power);
+                set(gca,'yscale','log');%改为对数坐标
+                xlabel('频率/Hz');
+                ylabel('psd');
+                title('psd');
+            else
+                %不做图
+            end
+        end
         
     end
     methods(Static)
