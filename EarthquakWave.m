@@ -217,7 +217,15 @@ classdef EarthquakWave<handle
         
     end
     methods(Static)
- 
+        function o=MakeSin(f,A,tend,dt)
+            %f时间频率
+            %A幅值
+            %tend结束时间
+            %dt时间间隔
+            tn=[0:dt:tend]';
+            accn=A*sin(2*pi*f*tn);
+            o=EarthquakWave(tn,accn,'m/s^2','正弦波');
+        end
     end
     
     
