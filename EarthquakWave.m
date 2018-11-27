@@ -7,6 +7,7 @@ classdef EarthquakWave<handle
         accn%加速度列向量
         unit%加速度单位
         note%添加注释用
+        numofpoint%点个数
         
         spectralvalue_sd%sd谱值 第一列表示周期 第二列表示谱值
         spectralvalue_psv
@@ -214,6 +215,9 @@ classdef EarthquakWave<handle
                 %不做图
             end
         end
+        function r=get.numofpoint(obj)
+            r=length(obj.tn);
+        end
         
     end
     methods(Static)
@@ -225,6 +229,11 @@ classdef EarthquakWave<handle
             tn=[0:dt:tend]';
             accn=A*sin(2*pi*f*tn);
             o=EarthquakWave(tn,accn,'m/s^2','正弦波');
+        end
+        function o=MakeConstant(A,tend,dt)%生成恒定波
+            tn=[0:dt:tend]';
+            accn=A*ones(length(tn),1);
+            o=EarthquakWave(tn,accn,'m/s^2','恒定波');
         end
     end
     
