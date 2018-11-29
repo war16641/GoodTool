@@ -55,6 +55,9 @@ classdef VALUE_CLASS_MANAGER<handle
             obj.object=[obj.object;{id,{newobj}}];
             obj.num=obj.num+1;
         end
+        function r=GetAllId(obj)
+            r=obj.object(:,1);
+        end
     end
     methods(Access=protected)
 

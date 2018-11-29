@@ -25,6 +25,7 @@ switch char(fmt)
         fclose(fid);
     case 'fixedwidth'%固定宽度
         gesi=['%' num2str(width) 'f'];
+        hangcounter=1;%记录读取的行数
         while(1)
             ln=fgetl(fid);
             if isempty(ln)
@@ -34,8 +35,21 @@ switch char(fmt)
                 break;
             end
             c=textscan(ln,gesi);%textscan函数得到的是列数据细胞
+            if isempty(c) 
+                disp(ln);
+                warning(['数据异常 位于' num2str(lineomit+hangcounter) '行'])
+                continue;
+            end
+            if ~isempty(c)
+                if length(ln)/(length(c{1})*width)>1.2 %总字符个数太多
+                    disp(ln);
+                    warning(['数据异常 位于' num2str(lineomit+hangcounter) '行'])
+                    continue;
+                end
+            end
             dt=[dt ;c{1}];
             
+            hangcounter=hangcounter+1;
         end
         fclose(fid);
     otherwise
