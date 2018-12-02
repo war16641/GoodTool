@@ -307,13 +307,17 @@ classdef EarthquakWave<handle
         
     end
     methods(Static)
-        function o=MakeSin(f,A,tend,dt)
+        function o=MakeSin(f,A,tend,dt,A0)
             %f时间频率
             %A幅值
             %tend结束时间
             %dt时间间隔
+            if nargin==4
+                A0=0;
+            end
             tn=[0:dt:tend]';
-            accn=A*sin(2*pi*f*tn);
+            accn=A*sin(2*pi*f*tn)+A0;
+            
             o=EarthquakWave(tn,accn,'m/s^2','正弦波');
         end
         function o=MakeConstant(A,tend,dt)%生成恒定波
