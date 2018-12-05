@@ -304,7 +304,23 @@ classdef EarthquakWave<handle
         function r=get.numofpoint(obj)
             r=length(obj.tn);
         end
-        
+        function StandardizeScale(obj)%标准化尺度 将地震波的峰值设为+1
+            obj.SwitchUnit();
+            tmp=AbsMax(obj.accn);
+            obj.accn=obj.accn/tmp;
+        end
+        function AbandonHalf(obj)%舍弃一半的点
+            tmp=2:2:obj.numofpoint;
+            obj.tn(tmp)=[];
+            obj.accn(tmp)=[];
+        end
+        function ReservePoint(obj,n)%保留前面n个点
+            if n>obj.numofpoint
+                return;
+            end
+            obj.tn=obj.tn(1:n);
+            obj.accn=obj.accn(1:n);
+        end
     end
     methods(Static)
         function o=MakeSin(f,A,tend,dt,A0)
