@@ -15,7 +15,7 @@ classdef VALUE_CLASS_MANAGER_UNIQUE_SORTED<VCM.VALUE_CLASS_MANAGER
             success=0;
             isoverwrite=0;
             if nargin==3
-                overwrite=0;%默认不覆盖
+                overwrite=1;%默认覆盖
             end
             [index,after]=obj.FindId(id);
             if index==0%没有id
@@ -23,15 +23,18 @@ classdef VALUE_CLASS_MANAGER_UNIQUE_SORTED<VCM.VALUE_CLASS_MANAGER
                 success=1;
                 isoverwrite=0;
             else%已有
-                if 1==overwrite
+                if 1==overwrite%指定覆盖
                     obj.Overwrite('index',index,newobj);%覆盖
                     disp(['覆盖' id])%这一句只是提示 可以不用输出
                     success=1;
                     isoverwrite=1;
                     return;
+                else%指定不覆盖
+                    success=0;
+                    isoverwrite=0;
+                    error('已有此id的值，并且指定不能覆盖')
                 end
-                success=0;
-                isoverwrite=0;
+                
 %                 disp('此id已有')%这一句只是提示 可以不用输出
 
             end
