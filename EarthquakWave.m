@@ -47,6 +47,10 @@ classdef EarthquakWave<handle
             %width 指定单个数据的长度
             %timeint 指定时间间隔
             switch char(fmt)
+                case 'acc'
+                    dt=ReadTxt(filename,1,lineomit);
+                    obj.accn=VectorDirection(dt);
+                    obj.tn=[0:length(dt)-1]'*timeint;
                 case 'time&acc'
                     dt=ReadTxt(filename,2,lineomit);
                     obj.tn=dt(:,1);
@@ -293,7 +297,7 @@ classdef EarthquakWave<handle
             if isequal(flag_draw,1)%做图
                 figure;
                 plot(f,power);
-                set(gca,'yscale','log');%改为对数坐标
+%                 set(gca,'yscale','log');%改为对数坐标
                 xlabel('频率/Hz');
                 ylabel('psd');
                 title('psd');
@@ -341,6 +345,7 @@ classdef EarthquakWave<handle
             accn=A*ones(length(tn),1);
             o=EarthquakWave(tn,accn,'m/s^2','恒定波');
         end
+        
     end
     
     
