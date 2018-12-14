@@ -1,4 +1,4 @@
-classdef EarthquakWave<handle
+classdef EarthquakWave<handle&matlab.mixin.Copyable
     %UNTITLED2 此处显示有关此类的摘要
     %   此处显示详细说明
     
@@ -324,6 +324,22 @@ classdef EarthquakWave<handle
             end
             obj.tn=obj.tn(1:n);
             obj.accn=obj.accn(1:n);
+        end
+        function PointInterpolation(obj,numadd)%线性内插点
+            [xx ,yy]=DataInterpolation(obj.tn,obj.accn,numadd);
+            obj.tn=xx;
+            obj.accn=yy;
+        end
+        function SelfCheck(obj)%自检 主要是检查时间序列是否是等差数列
+            if obj.numofpoint<=2
+                return;
+            end
+            dis=obj.tn(2)-obj.tn(1);
+            for it=3:obj.numofpoint
+                if dis+obj.tn(it-1)~=obj.tn(it)
+                    error('时间序列不是等差数列')
+                end
+            end
         end
     end
     methods(Static)
