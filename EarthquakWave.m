@@ -297,7 +297,7 @@ classdef EarthquakWave<handle&matlab.mixin.Copyable
             if isequal(flag_draw,1)%做图
                 figure;
                 plot(f,power);
-%                 set(gca,'yscale','log');%改为对数坐标
+                set(gca,'yscale','log');%改为对数坐标
                 xlabel('频率/Hz');
                 ylabel('psd');
                 title('psd');
@@ -325,6 +325,13 @@ classdef EarthquakWave<handle&matlab.mixin.Copyable
             obj.tn=obj.tn(1:n);
             obj.accn=obj.accn(1:n);
         end
+        function CutPoint(obj,n)%舍弃前面n各点
+            if n>obj.numofpoint
+                return;
+            end
+            obj.tn(end-n+1:end)=[];
+            obj.accn(1:n)=[];
+        end
         function PointInterpolation(obj,numadd)%线性内插点
             [xx ,yy]=DataInterpolation(obj.tn,obj.accn,numadd);
             obj.tn=xx;
@@ -340,6 +347,26 @@ classdef EarthquakWave<handle&matlab.mixin.Copyable
                     error('时间序列不是等差数列')
                 end
             end
+        end
+        function Write2File(obj,path,flag_writeinfo)%把地震波写入文档 以时间加速度两列的形式
+            %path 文件名及路径
+            %flag_writeinfo 是否写入note 单位 
+            if nargin==2
+                flag_writeinfo=0;%默认不写入
+            end
+            
+            fid=fopen(path,'w');
+            if flag_writeinfo==1
+                fprintf(fid,[obj.note '\r\n']);
+                fprintf(fid,[obj.unit '\r\n']);
+            end
+            
+            separator='\t';%分隔符
+            
+            for it=1:obj.numofpoint
+                fprintf(fid,[sprintf('%0.5f',obj.tn(it)) separator sprintf('%0.8e',obj.accn(it))  '\r\n']);
+            end
+            fclose(fid);
         end
     end
     methods(Static)

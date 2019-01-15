@@ -65,9 +65,16 @@ classdef Earthqauk_MANAGER<HCM.HANDLE_CLASS_MANAGER
             legend(le)
        
         end
-        function ComparePSD(obj)
-            figure;
-            hold on
+        function ComparePSD(obj,ax)
+            if nargin==1
+                figure;
+                axes;
+                hold on
+            else
+                axes(ax);
+                hold on;
+            end
+            
             le={};
             for it=1:obj.num
                 [p,f]=obj.objects(it).PSD(0);
@@ -77,7 +84,19 @@ classdef Earthqauk_MANAGER<HCM.HANDLE_CLASS_MANAGER
             title('PSD');
             xlabel('频率/Hz');
             legend(le)
-%             set(gca,'yscale','log');%改为对数坐标
+            set(gca,'yscale','log');%改为对数坐标
+        end
+        function Compare(obj)%比较时程
+            figure;
+            hold on
+            le={};
+            for it=1:obj.num
+                plot(obj.objects(it).tn,obj.objects(it).accn);
+                le=[le obj.objects(it).note];
+            end
+            title('时程加速度');
+            xlabel('时间');
+            legend(le);
         end
     end
 end
