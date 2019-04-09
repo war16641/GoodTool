@@ -6,6 +6,7 @@ function flhz_x(xlsname,sheet,rowformat,classifyname,control,sheetname,flag_cont
 %classifyname 类别字段 字符串组成的行细胞 将数据按行细胞字段的顺序排序
 %control 控制信息 n*2的细胞 第一列是字段名 第二列是对应操作
 %sheetname 是将处理后的结果以新建工作表的方式输出
+%flag_controltxt 是否输出控制信息 输出在第二行
 
 numcontrol=size(control,1);%控制信息的行数
 startrow=rowformat{3};%数据起始行
@@ -60,7 +61,9 @@ for it=2:size(tab,1)
                 case 'absmin1'
                     returnpart1=[returnpart1,AbsMin(tab2,1)];  
                 case 'count'
-                    returnpart1=[returnpart1,length(tab2)];  
+                    returnpart1=[returnpart1,length(tab2)];
+                case 'mean'
+                    returnpart1=[returnpart1,mean(tab2)];
                 otherwise
                     error("无此类型")
             end
