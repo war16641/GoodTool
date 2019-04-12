@@ -41,7 +41,11 @@ returnpart={};
 for it=2:size(tab,1)
     thisclass=tab(it,classifyindex);thisclass=table2cell(thisclass);
     if ~Comparelcass(lastclass,thisclass)||it==size(tab,1)%不相同 或者 最后一组
-        tab1=tab(num1+1:it-1,:);%取得此类别数据
+        endrow=it-1;%取块 结束行
+        if it ==size(tab,1)
+            endrow=endrow+1;
+        end
+        tab1=tab(num1+1:endrow,:);%取得此类别数据
         num1=it-1;
         returnpart1=lastclass;
         for k=1:numcontrol%根据控制信息进行汇总
