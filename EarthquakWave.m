@@ -170,7 +170,7 @@ classdef EarthquakWave<handle&matlab.mixin.Copyable
                     case 'psv'
                         obj.spectralvalue_psv(it,2)=AbsMax(dv,1);%拟相对速度谱
                     case 'psa'
-                        obj.spectralvalue_psa(it,2)=AbsMax(ddv'+obj.accn,1);%拟加速度反应谱
+                        obj.spectralvalue_psa(it,2)=Absmax(ddv'+obj.accn,1);%拟加速度反应谱
                     otherwise
                         error('sdddd')
                 end
@@ -337,14 +337,21 @@ classdef EarthquakWave<handle&matlab.mixin.Copyable
             obj.tn=xx;
             obj.accn=yy;
         end
-        function SelfCheck(obj)%自检 主要是检查时间序列是否是等差数列
+        function SelfCheck(obj)%自检 主要是检查时间序列是否是等差数列 递增数列
             if obj.numofpoint<=2
                 return;
             end
             dis=obj.tn(2)-obj.tn(1);
             for it=3:obj.numofpoint
                 if dis+obj.tn(it-1)~=obj.tn(it)
-                    error('时间序列不是等差数列')
+                    warning('时间序列不是等差数列')
+                    break;
+                end
+            end
+            for i=1:obj.numofpoint-1
+                if obj.tn(i+1)<obj.tn(i)
+                    warning('时间序列不是递增数列')
+                    break;
                 end
             end
         end
@@ -367,6 +374,24 @@ classdef EarthquakWave<handle&matlab.mixin.Copyable
                 fprintf(fid,[sprintf('%0.5f',obj.tn(it)) separator sprintf('%0.8e',obj.accn(it))  '\r\n']);
             end
             fclose(fid);
+        end
+        function r=GetSimilarValue(obj,x)
+            %获取在x处近似值
+            if x<obj.tn(1) || x>obj.tn(end)
+                error('超出范围')
+            end
+            if abs(x-obj.tn(end))<1e-8
+                r=obj.accn(end);
+                return
+            end
+            %找到x上下点
+            for i=1:length(obj.tn)
+                if x<obj.tn(i)
+                    r=LinearInterpolation(x,[obj.tn(i-1) obj.tn(i);obj.accn(i-1) obj.accn(i)]);
+                    return
+                end
+            end
+            error('sd')
         end
     end
     methods(Static)
