@@ -2,7 +2,7 @@ function T=make_table_from_file(filename,format_str,numlineomitted,variable_name
 % filename的格式：
 % 第一行可以是变量名，以分隔符连接 variable_name_line指定有没有这一行
 % 剩下的是数据行，数据用分隔符连接
-% format_str指定格式比如"%s,%d,%d,%f,%f,%f,%f,%f" 也是用分隔符连接
+% format_str指定格式比如"%s,%d,%d,%f,%f,%f,%f,%f"（这里，是分隔符）也是用分隔符连接
 % delimiter 分隔符
 %返回表
 %注意：文件中不要出现空变量值，否则会导致数据错位，具体表现为后面的数据顶到前面的数据上（因为'MultipleDelimsAsOne',1）
@@ -58,6 +58,7 @@ while 1
     c=textscan(ln,fm,'delimiter',delimiter, 'TextType', 'string','MultipleDelimsAsOne',1);%这里没检查每一行的数据格式对不对
     T=[T;c];
 end
+fclose(fid);
 end
 function fid=omitlines(fid,line)
 if 0==line
