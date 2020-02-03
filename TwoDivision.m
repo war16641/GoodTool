@@ -4,6 +4,9 @@ function r=TwoDivision(fun_handle,con,tol,a,b)
         r=fun_handle(xx)-con;
     end
 p=-1;
+if fun(a)*fun(b)>0
+    error('区间内可能无零点')
+end
 while (fun(a)*fun(b) <=0) && (abs(a-b)>tol)
     c=(a+b)/2;
     if fun(c)*fun(b)<=0
