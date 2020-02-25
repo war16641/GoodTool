@@ -393,6 +393,17 @@ classdef EarthquakWave<handle&matlab.mixin.Copyable
             end
             error('sd')
         end
+        function FillZeros(obj,endtime)%给后面填零 endtime是结束的时间
+            if endtime<obj.tn(end)
+                error('endtime需大于目前结束时间')
+            end
+            dt=obj.tn(end)-obj.tn(end-1);
+            t=obj.tn(end):dt:endtime;
+            t(1)=[];%删除第一行
+            t=[t' zeros(length(t),1)];
+            obj.tn=[obj.tn;t(:,1)];
+            obj.accn=[obj.accn;t(:,2)];
+        end
     end
     methods(Static)
         function o=MakeSin(f,A,tend,dt,A0)
