@@ -170,7 +170,7 @@ classdef EarthquakWave<handle&matlab.mixin.Copyable
                     case 'psv'
                         obj.spectralvalue_psv(it,2)=AbsMax(dv,1);%拟相对速度谱
                     case 'psa'
-                        obj.spectralvalue_psa(it,2)=Absmax(ddv'+obj.accn,1);%拟加速度反应谱
+                        obj.spectralvalue_psa(it,2)=AbsMax(ddv'+obj.accn,1);%拟加速度反应谱
                     otherwise
                         error('sdddd')
                 end
