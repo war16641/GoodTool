@@ -65,6 +65,16 @@ classdef ModalDispl<handle
             legend(le);
             set(gca,'yscale','log');%改为对数坐标
         end
+        
+        function [u_comp,tn]=GetDispComp(obj,nd_xuhao)%分解指定节点的位移 按振型分解
+            %u_comp： 时间点个数*振型数 double 
+            ndid=obj.lc_m.f.node.GetIdByXuhao(nd_xuhao);
+            u_comp=zeros(obj.timeframe.num,3);
+            for i=1:obj.timeframe.num
+                u_comp(i,:)=obj.lc_m.mode(ndid,:).*obj.timeframe.Get('index',i)';
+            end
+            tn=obj.lc_e.ei.ew.tn;
+        end
     end
     methods(Static)
         function c=Number2Str(x)%将数字向量化作字符串细胞

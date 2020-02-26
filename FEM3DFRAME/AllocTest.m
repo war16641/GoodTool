@@ -909,8 +909,8 @@ classdef AllocTest < matlab.perftest.TestCase   % 性能测试的公共父类
             legend('newmark','解析解','central')
             testcase.verifyTrue(err<0.001,'验证错误');
         end
-        function test_verifymodel_23(testcase)
-            %测试 模态坐标 同时验证当初位移为第三阵型时，是否其他模态坐标为0
+        function test_verifymodel_23(testcase)%测试 模态坐标 同时验证当初位移为第三阵型时，是否其他模态坐标为0
+            
             
             order=2;
             f=FEM3DFRAME();
@@ -982,6 +982,15 @@ classdef AllocTest < matlab.perftest.TestCase   % 性能测试的公共父类
             [t,YY,eng]=md.PlotData();
             testcase.verifyTrue(t(order)/sum(t)>0.99,'验证错误');
             testcase.verifyTrue(norm(vn(:,1)-eng(:,end))<0.0001,'验证错误');%验证模态的势能和结构的势能是否一致
+            
+            %验证振型分解
+            [u_comp,tn]=md.GetDispComp(2);
+            figure
+            plot(tn,u_comp)
+            legend('1','2','3')
+            uhe=sum(u_comp,2);
+            [vn,tn]=lc.rst.GetTimeHistory(0,40,'node','displ',2,1);
+            testcase.verifyTrue(norm(uhe-vn)<1e-10,'验证错误');
         end
         function test_verifymodel_24(testcase)
             %测试 恒载力
