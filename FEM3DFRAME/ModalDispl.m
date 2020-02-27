@@ -72,9 +72,8 @@ classdef ModalDispl<handle
         function [u_comp,tn]=GetDispComp(obj,nd_id,dir)%分解指定节点的位移 按振型分解
             %u_comp： 时间点个数*振型数 double 
             %dir 1 2 3 代表ux uy uz
-            nd_xuhao=obj.lc_m.f.node.GetXuhaoByID(nd_id);%ux的序号
-            nd_xuhao=nd_xuhao+dir-1;%dir方向序号
-            nd_xuhao1=find(obj.lc_m.activeindex==nd_xuhao);%考虑激活自由度后的序号 即在M1中的序号
+
+            nd_xuhao1=obj.lc_m.GetIndex1InM1(nd_id,dir);
             u_comp=zeros(obj.timeframe.num,obj.lc_m.arg{1});
             for i=1:obj.timeframe.num
                 u_comp(i,:)=obj.lc_m.mode(nd_xuhao1,:).*obj.timeframe.Get('index',i)';

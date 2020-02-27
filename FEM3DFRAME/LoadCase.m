@@ -211,6 +211,13 @@ classdef LoadCase<handle & matlab.mixin.Heterogeneous
             
             
         end
+        function index1=GetIndex1InM1(obj,nd_id,dir)%从M1矩阵中获取指定节点编号和方向的序号
+            %这个函数是为获得M1 K1矩阵(映入了边界条件后）节点号自由度方向获取它的序号
+            nd_xuhao=obj.f.node.GetXuhaoByID(nd_id);%ux的序号
+            nd_xuhao=nd_xuhao+dir-1;%dir方向序号
+            index1=find(obj.activeindex==nd_xuhao);%考虑激活自由度后的序号 即在M1中的序号
+            assert(~isempty(index1),'在M1中没有这个自由度。')
+        end
     end
     methods(Abstract)
         Solve(obj)
