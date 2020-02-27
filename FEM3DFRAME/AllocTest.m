@@ -1,7 +1,7 @@
 %runtests('AllocTest.m')
 %r = runperf('AllocTest')
 classdef AllocTest < matlab.perftest.TestCase   % 性能测试的公共父类
-
+    
     methods(Test)
         
         function test1(testcase)
@@ -1445,7 +1445,7 @@ classdef AllocTest < matlab.perftest.TestCase   % 性能测试的公共父类
             testcase.verifyTrue(err<0.001,'验证错误');
         end
         function test_verifymodel_32(testcase) %测试 地震工况 三自由度 非线性spring
-           
+            
             
             f=FEM3DFRAME();
             f.node.AddByCartesian(1,0,0,0);
@@ -1504,6 +1504,111 @@ classdef AllocTest < matlab.perftest.TestCase   % 性能测试的公共父类
             
             
         end
-        
+        function test_verifymodel_33(testcase)%测试广义质量 指定节点位移的振型分解
+            %冲fem模拟2自由度 copy过来的
+            %测试 地震工况 单节点受正玄波荷载
+            f=FEM3DFRAME();
+            f.node.AddByCartesian(1,0,0,0);
+            f.node.AddByCartesian(2,1,0,0);
+            f.node.AddByCartesian(3,2,0,0);
+            
+            
+            tmp=ELEMENT_MASS(f,0,2,[1 1 1 0 0 0]*100);
+            f.manager_ele.Add(tmp);
+            tmp=ELEMENT_MASS(f,0,3,[1 1 1 0 0 0]*400);
+            f.manager_ele.Add(tmp);
+            
+            
+            k=19740;
+            tmp=ELEMENT_SPRING(f,0,[1 2],[k 0 0 0 0 0]);
+            f.manager_ele.Add(tmp);
+            k=9870;
+            tmp=ELEMENT_SPRING(f,0,[2 3],[k 0 0 0 0 0]);
+            f.manager_ele.Add(tmp);
+            
+            
+            lc=LoadCase_Modal(f,'modal');
+            f.manager_lc.Add(lc);
+            lc.arg{2}='m';%按质量矩阵归一化振型 若改成按弹性势能归一化此测试也必须能通过
+            lc.AddBC('displ',[1 1 0;1 2 0;1 3 0;1 4 0;1 5 0;1 6 0]);
+            lc.AddBC('displ',[2 2 0;2 3 0;2 4 0;2 5 0;2 6 0]);
+            lc.AddBC('displ',[3 2 0;3 3 0;3 4 0;3 5 0;3 6 0]);
+            lc.Solve();
+            lc.rst.PrintPeriodInfo()
+            
+            lc1=LoadCase_Earthquake(f,'ea');
+            f.manager_lc.Add(lc1);
+            lc1.AddBC('displ',[1 1 0;1 2 0;1 3 0;1 4 0;1 5 0;1 6 0]);
+            lc1.AddBC('displ',[2 2 0;2 3 0;2 4 0;2 5 0;2 6 0]);
+            lc1.AddBC('displ',[3 2 0;3 3 0;3 4 0;3 5 0;3 6 0]);
+            dt=ReadTxt("E:\研究生\新型摩擦摆支座\matlab\sap2000automation\waves\elcentro.th",2,2);
+            ew=EarthquakWave(dt(:,1),dt(:,2),'g','el');
+            ew.FillZeros(40);
+            ew.PointInterpolation(1);
+            ei=EarthquakeInput(lc1,'landers',ew,1,0);
+            lc1.AddEarthquakeInput(ei);
+            lc1.SetAlgorithm('newmark',0.5,0.25);
+            [a, b]=DAMPING.RayleighDamping(1,10,0.05,0.05);
+            lc1.damp.Set('rayleigh',0,0);%无阻尼
+            lc1.Solve();
+            figure
+            [vn,tn]=lc1.rst.GetTimeHistory(0,40,'node','displ',3,1);
+            plot(tn,vn)
+            testcase.verifyTrue(abs(max(vn)-2.042e-1)<1e-3,'最大值')
+            testcase.verifyTrue(abs(min(vn)+1.927e-1)<1e-3,'最小值')
+            
+            md=lc1.MakeModalDispl(lc);
+            [u_comp,tn]=md.GetDispComp(2);
+            figure
+            plot(tn,u_comp)
+            legend('1','2')
+            uhe=sum(u_comp,2);
+            [vn,tn]=lc1.rst.GetTimeHistory(0,40,'node','displ',2,1);
+            figure
+            plot(tn,vn)
+            hold on
+            plot(tn,uhe,'*')
+            legend('地震工况原值','分解和')
+            testcase.verifyTrue(norm(vn-uhe)<1e-7,'分解前后存在误差')
+            
+            
+            
+            
+            
+            %各个振型对2号节点的因子
+            t1=lc.mode(:,1)'*lc.M1*[1 1]'/lc.generalized_vars(1,1)*lc.mode(1,1);
+            sd1=0.1927;
+            t2=t1*sd1;
+            t3=AbsMax(u_comp(:,1),1);
+            disp('因子 谱值 积  振型分解值')
+            fprintf('%f\t%f\t%f\t%f\n',t1,sd1,t2,t3)%1阶
+            
+            t11=lc.mode(:,2)'*lc.M1*[1 1]'/lc.generalized_vars(2,1)*lc.mode(1,2);
+            sd2=0.04638;
+            t2=t11*sd2;
+            t3=AbsMax(u_comp(:,2),1);
+            disp('因子 谱值 积  振型分解值')
+            fprintf('%f\t%f\t%f\t%f\n',t11,sd2,t2,t3)%2阶
+            testcase.verifyTrue(norm([0.371846 0.628154]-[t1 t11])<1e-3,'分解前后存在误差')
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            % [maxYY,YY,eng]=md.PlotData();
+            % figure
+            % plot(tn,YY(:,1))
+            
+            
+            
+            
+        end
     end
 end
