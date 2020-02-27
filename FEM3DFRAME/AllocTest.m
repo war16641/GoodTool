@@ -984,7 +984,7 @@ classdef AllocTest < matlab.perftest.TestCase   % 性能测试的公共父类
             testcase.verifyTrue(norm(vn(:,1)-eng(:,end))<0.0001,'验证错误');%验证模态的势能和结构的势能是否一致
             
             %验证振型分解
-            [u_comp,tn]=md.GetDispComp(2);
+            [u_comp,tn]=md.GetDispComp(2,1);
             figure
             plot(tn,u_comp)
             legend('1','2','3')
@@ -1558,7 +1558,7 @@ classdef AllocTest < matlab.perftest.TestCase   % 性能测试的公共父类
             testcase.verifyTrue(abs(min(vn)+1.927e-1)<1e-3,'最小值')
             
             md=lc1.MakeModalDispl(lc);
-            [u_comp,tn]=md.GetDispComp(2);
+            [u_comp,tn]=md.GetDispComp(2,1);
             figure
             plot(tn,u_comp)
             legend('1','2')
@@ -1575,21 +1575,34 @@ classdef AllocTest < matlab.perftest.TestCase   % 性能测试的公共父类
             
             
             
-            %各个振型对2号节点的因子
-            t1=lc.mode(:,1)'*lc.M1*[1 1]'/lc.generalized_vars(1,1)*lc.mode(1,1);
+            %各个振型对3号节点的因子
+            [u_comp3,tn]=md.GetDispComp(3,1);
             sd1=0.1927;
-            t2=t1*sd1;
-            t3=AbsMax(u_comp(:,1),1);
+            t3=AbsMax(u_comp3(:,1),1);
             disp('因子 谱值 积  振型分解值')
-            fprintf('%f\t%f\t%f\t%f\n',t1,sd1,t2,t3)%1阶
+            fprintf('%f\t%f\t%f\t%f\n',lc.modal_participation_factor1(2,1),sd1,sd1*lc.modal_participation_factor1(2,1),t3)%1阶
+            testcase.verifyTrue(norm(sd1*lc.modal_participation_factor1(2,1)-t3)<1e-3,'振型参与因子1错误。振型参与因子1*位移谱值！=该自由度振型分解值')
+            sd1=0.04638;
+            t3=AbsMax(u_comp3(:,2),1);
+            disp('因子 谱值 积  振型分解值')
+            fprintf('%f\t%f\t%f\t%f\n',lc.modal_participation_factor1(2,2),sd1,sd1*lc.modal_participation_factor1(2,2),t3)%1阶
+            testcase.verifyTrue(norm(abs(sd1*lc.modal_participation_factor1(2,2))-abs(t3))<1e-3,'振型参与因子1错误。振型参与因子1*位移谱值！=该自由度振型分解值')
             
-            t11=lc.mode(:,2)'*lc.M1*[1 1]'/lc.generalized_vars(2,1)*lc.mode(1,2);
-            sd2=0.04638;
-            t2=t11*sd2;
-            t3=AbsMax(u_comp(:,2),1);
+            %各个振型对2号节点的因子
+            [u_comp3,tn]=md.GetDispComp(2,1);
+            sd1=0.1927;
+            t3=AbsMax(u_comp3(:,1),1);
             disp('因子 谱值 积  振型分解值')
-            fprintf('%f\t%f\t%f\t%f\n',t11,sd2,t2,t3)%2阶
-            testcase.verifyTrue(norm([0.371846 0.628154]-[t1 t11])<1e-3,'分解前后存在误差')
+            fprintf('%f\t%f\t%f\t%f\n',lc.modal_participation_factor1(1,1),sd1,sd1*lc.modal_participation_factor1(1,1),t3)%1阶
+            testcase.verifyTrue(norm(sd1*lc.modal_participation_factor1(1,1)-t3)<5e-3,'振型参与因子1错误。振型参与因子1*位移谱值！=该自由度振型分解值')
+            sd1=0.04638;
+            t3=AbsMax(u_comp3(:,2),1);
+            disp('因子 谱值 积  振型分解值')
+            fprintf('%f\t%f\t%f\t%f\n',lc.modal_participation_factor1(1,2),sd1,sd1*lc.modal_participation_factor1(1,2),t3)%1阶
+            testcase.verifyTrue(norm(abs(sd1*lc.modal_participation_factor1(1,2))-abs(t3))<5e-3,'振型参与因子1错误。振型参与因子1*位移谱值！=该自由度振型分解值')
+            
+            
+            
             
             
             

@@ -55,15 +55,16 @@ classdef LoadCase_Earthquake<LoadCase
         end
         function Solve(obj)
             obj.PreSolve();
-            %计算R
-            obj.R=zeros(obj.dof,3);
-            tmp=1:6:6*obj.dof;
-            obj.R(tmp,1)=1;%ux uy uz的质量影响为1
-            obj.R(tmp+1,2)=1;
-            obj.R(tmp+2,3)=1;
-            
-            %形成刚度 质量 矩阵 引入边界条件后
-            obj.R1=obj.R(obj.activeindex,:);
+%             %计算R
+%             obj.R=zeros(obj.dof,3);
+%             tmp=1:6:6*obj.dof;
+%             obj.R(tmp,1)=1;%ux uy uz的质量影响为1
+%             obj.R(tmp+1,2)=1;
+%             obj.R(tmp+2,3)=1;
+%             
+%             %形成刚度 质量 矩阵 引入边界条件后
+%             obj.R1=obj.R(obj.activeindex,:);
+            [obj.R,obj.R1]=LoadCase_Earthquake.MakeR(obj);%使用静态方法生成R矩阵
 
             %计算阻尼
             obj.damp.Make();%注意：在计算刚度 质量后计算阻尼
@@ -636,6 +637,21 @@ classdef LoadCase_Earthquake<LoadCase
              
              %关闭wb
              wb.Close();
+        end
+    end
+    
+    methods(Static)
+        function [R,R1]=MakeR(lc)%生成R矩阵 要求lc是loadcase类 并且 已经执行过presolve（）
+            
+            %计算R
+            R=zeros(lc.dof,3);
+            tmp=1:6:6*lc.dof;
+            R(tmp,1)=1;%ux uy uz的质量影响为1
+            R(tmp+1,2)=1;
+            R(tmp+2,3)=1;
+            
+            %形成刚度 质量 矩阵 引入边界条件后
+            R1=R(lc.activeindex,:);
         end
     end
 end
