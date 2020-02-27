@@ -120,10 +120,7 @@ classdef LoadCase_Earthquake<LoadCase
                 error('nyh:error','要求modal工况的有效自由度和本工况一致，不一致可能是边界条件不同导致的。')
             end
             
-            %检查modal工况是否用刚度规格化阵型
-            if 'k'~=mlc.arg{2}
-                error('nyh:error','要求modal工况的使用刚度规格化阵型。')%这个条件不是必须条件。但是刚度规格化可以方便地使用模态坐标表示应变能。
-            end
+
             
             %求解模态坐标
             md=ModalDispl(mlc,obj);

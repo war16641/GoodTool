@@ -2,8 +2,8 @@ classdef ModalDispl<handle
     %模态坐标
     
     properties
-        lc_m%模态工况
-        lc_e%地震工况
+        lc_m LoadCase_Modal%模态工况
+        lc_e LoadCase_Earthquake %地震工况
         timeframe
     end
     
@@ -18,7 +18,7 @@ classdef ModalDispl<handle
             end
             %检查modal工况是否用刚度规格化阵型
             if 'k'~=lc_m.arg{2}
-                error('nyh:error','要求modal工况的使用刚度规格化阵型。')%这个条件不是必须条件。但是刚度规格化可以方便地使用模态坐标表示应变能。
+                warning('nyh:error','要求modal工况的使用刚度规格化阵型。')%这个条件不是必须条件。但是刚度规格化可以方便地使用模态坐标表示应变能。
             end
                         %求解模态坐标
             modeli=lc_m.mode^-1;
@@ -30,6 +30,9 @@ classdef ModalDispl<handle
                 Y=modeli*v;
                 obj.timeframe.Add(tf.framename,Y);
             end
+            
+
+            
         end
         
         function [maxY,YY,eng]=PlotData(obj,order)%做图表示

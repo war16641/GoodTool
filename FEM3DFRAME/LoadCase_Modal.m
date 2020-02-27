@@ -7,6 +7,7 @@ classdef LoadCase_Modal<LoadCase
         mode%阵型矩阵
         w%周期信息
         
+        generalized_vars double%广义质量 广义刚度 每一行代表一阶
 
     end
     
@@ -37,6 +38,13 @@ classdef LoadCase_Modal<LoadCase
             toc
 
             
+            
+            %广义变量
+            obj.generalized_vars=zeros(obj.arg{1},2);
+            t=obj.mode'*obj.M1*obj.mode;
+            obj.generalized_vars(:,1)=diag(t);
+            t=obj.mode'*obj.M1*obj.mode;
+            obj.generalized_vars(:,2)=diag(t);
 
             
             
