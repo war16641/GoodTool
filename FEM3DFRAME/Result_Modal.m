@@ -3,6 +3,7 @@ classdef Result_Modal<Result
     
     properties
         periodinfo %存储周期信息 周期频率 等等
+ 
     end
     
     methods
@@ -25,7 +26,7 @@ classdef Result_Modal<Result
             if nargin==1%没指定frametype,framename
                 order=1;%设置默认指针 为 时间帧的第一个 即一阶振型
             end
-            obj.pointer=obj.timeframe.Get('id',order);
+            obj.pointer=obj.timeframe.Get('id',order); 
 
         end
 

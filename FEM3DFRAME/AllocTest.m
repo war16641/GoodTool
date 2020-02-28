@@ -1623,5 +1623,67 @@ classdef AllocTest < matlab.perftest.TestCase   % 性能测试的公共父类
             
             
         end
+        
+        function test_verifymodel_34(testcase)%loadcase modal的PredictWithResponseSpectrum
+            %3层story
+            f=FEM3DFRAME();
+            f.node.AddByCartesian(1,0,0,0);
+            f.node.AddByCartesian(2,1,0,0);
+            f.node.AddByCartesian(3,2,0,0);
+            f.node.AddByCartesian(4,3,0,0);
+            
+            mass=0.3;
+            tmp=ELEMENT_MASS(f,0,2,[1 1 1 0 0 0]*mass);
+            f.manager_ele.Add(tmp);
+            tmp=ELEMENT_MASS(f,0,3,[1 1 1 0 0 0]*mass);
+            f.manager_ele.Add(tmp);
+            tmp=ELEMENT_MASS(f,0,4,[1 1 1 0 0 0]*mass);
+            f.manager_ele.Add(tmp);
+            
+            
+            k=200;
+            tmp=ELEMENT_SPRING(f,0,[1 2],[k 0 0 0 0 0]);
+            f.manager_ele.Add(tmp);
+            tmp=ELEMENT_SPRING(f,0,[2 3],[k 0 0 0 0 0]);
+            f.manager_ele.Add(tmp);
+            tmp=ELEMENT_SPRING(f,0,[3 4],[k 0 0 0 0 0]);
+            f.manager_ele.Add(tmp);
+            
+            lc=LoadCase_Modal(f,'modal');
+            f.manager_lc.Add(lc);
+            lc.arg{2}='m';
+            lc.AddBC('displ',[1 1 0;1 2 0;1 3 0;1 4 0;1 5 0;1 6 0]);
+            lc.AddBC('displ',[2 2 0;2 3 0;2 4 0;2 5 0;2 6 0]);
+            lc.AddBC('displ',[3 2 0;3 3 0;3 4 0;3 5 0;3 6 0]);
+            lc.AddBC('displ',[4 2 0;4 3 0;4 4 0;4 5 0;4 6 0]);
+            lc.Solve();
+            lc.rst.PrintPeriodInfo()
+            
+            
+            
+            lc1=LoadCase_Earthquake(f,'ea');
+            f.manager_lc.Add(lc1);
+            lc1.AddBC('displ',[1 1 0;1 2 0;1 3 0;1 4 0;1 5 0;1 6 0]);
+            lc1.AddBC('displ',[2 2 0;2 3 0;2 4 0;2 5 0;2 6 0]);
+            lc1.AddBC('displ',[3 2 0;3 3 0;3 4 0;3 5 0;3 6 0]);
+            dt=ReadTxt("E:\研究生\新型摩擦摆支座\matlab\sap2000automation\waves\elcentro.th",2,2);
+            ew=EarthquakWave(dt(:,1),dt(:,2),'g','el');
+            ew.FillZeros(40);
+            ew.PointInterpolation(1);
+%             ei=EarthquakeInput(lc1,'landers',ew,1,0);
+%             lc1.AddEarthquakeInput(ei);
+%             lc1.SetAlgorithm('newmark',0.5,0.25);
+%             [a, b]=DAMPING.RayleighDamping(1,10,0.05,0.05);
+%             lc1.damp.Set('rayleigh',0,0);%无阻尼
+%             lc1.Solve();
+%             figure
+%             [vn,tn]=lc1.rst.GetTimeHistory(0,40,'node','displ',3,1);
+%             plot(tn,vn)
+            
+            t=lc.PredictWithResponseSpectrum(3,1,0,ew);
+            testcase.verifyEqual(t,0.154,'AbsTol',0.001);
+
+
+        end
     end
 end

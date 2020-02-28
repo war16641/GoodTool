@@ -151,6 +151,14 @@ classdef LoadCase_Modal<LoadCase
                 end
             end
         end
+        function r=PredictWithResponseSpectrum(obj,nd_id,dir,xi,ew)%使用反应谱预测位移响应
+            %各个振型的谱值线性叠加 有限元软件中有srss cmc的叠加方法，此处没实现。
+            index1=obj.GetIndex1InM1(nd_id,dir);
+            t=obj.modal_participation_factor1(index1,:);%获取所有阶的index1值
+            Ts=2*pi./obj.w;%周期
+            [sds,~]=ew.ResponseSpectra_Tn(Ts,'sd',xi,0);%谱值
+            r=t*sds;
+        end
     end
     methods(Static)
         function [w,mode]=GetInfoForFreeVibration_eig(k,m,nummode,fmt)

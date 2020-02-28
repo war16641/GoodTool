@@ -55,7 +55,7 @@ classdef EarthquakWave<handle&matlab.mixin.Copyable
                     dt=ReadTxt(filename,2,lineomit);
                     obj.tn=dt(:,1);
                     obj.accn=dt(:,2);
-
+                    
                 case 'matrix1'%矩阵形式的地震波文件 需要把矩阵转化为列向量 格式使用分隔符
                     dt=ReadTxtWithMatrixFormat(filename,'split',lineomit);
                     obj.tn=[0:length(dt)-1]'*timeint;
@@ -63,11 +63,11 @@ classdef EarthquakWave<handle&matlab.mixin.Copyable
                 case 'matrix2'%矩阵形式的地震波文件 需要把矩阵转化为列向量 格式使用固定宽度
                     dt=ReadTxtWithMatrixFormat(filename,'fixedwidth',lineomit,width);
                     obj.tn=[0:length(dt)-1]'*timeint;
-                    obj.accn=dt;                    
+                    obj.accn=dt;
                 otherwise
                     error('sd')
             end
-
+            
             validStrings = ["m/s^2","gal","g"];
             validatestring(string(unit),validStrings);
             obj.unit=unit;
@@ -197,12 +197,12 @@ classdef EarthquakWave<handle&matlab.mixin.Copyable
                     otherwise
                         error('sdddd')
                 end
-            
+                
             end
-
-
+            
+            
         end
-        function ResponseSpectra_Tn(obj,Tn,type,dampratio,flag_draw)
+        function [puzhi,Tn]=ResponseSpectra_Tn(obj,Tn,type,dampratio,flag_draw)
             %指定周期序列
             %获取反应谱
             % type 可选sd psv psa
@@ -223,7 +223,7 @@ classdef EarthquakWave<handle&matlab.mixin.Copyable
             
             m=1;
             pn=-m*obj.accn;
-            period=Tn;
+            period=VectorDirection(Tn,'row');
             num=length(Tn);
             %准备数据格式
             switch type
@@ -261,8 +261,10 @@ classdef EarthquakWave<handle&matlab.mixin.Copyable
             end
             
             if 1==flag_draw%要做图
+                
                 switch type
                     case 'sd'
+                        
                         figure
                         plot(obj.spectralvalue_sd(:,1),obj.spectralvalue_sd(:,2));
                         title([type '-' char(obj.note)]);
@@ -280,10 +282,28 @@ classdef EarthquakWave<handle&matlab.mixin.Copyable
                     otherwise
                         error('sdddd')
                 end
-            
+                
             end
-
-
+            
+            %处理输出的谱值
+            if nargout~=0
+                switch type
+                    case 'sd'
+                        puzhi=obj.spectralvalue_sd(:,2);
+                        
+                    case 'psv'
+                        puzhi=obj.spectralvalue_psv(:,2);
+                        
+                    case 'psa'
+                        puzhi=obj.spectralvalue_psa(:,2);
+                        
+                    otherwise
+                        error('sdddd')
+                end
+                
+            end
+            
+            
         end
         function [power,f]=PSD(obj,flag_draw)%功率谱
             %使用内置函数periodogram求功率谱估计，是一种估计、
@@ -357,7 +377,7 @@ classdef EarthquakWave<handle&matlab.mixin.Copyable
         end
         function Write2File(obj,path,flag_writeinfo)%把地震波写入文档 以时间加速度两列的形式
             %path 文件名及路径
-            %flag_writeinfo 是否写入note 单位 
+            %flag_writeinfo 是否写入note 单位
             if nargin==2
                 flag_writeinfo=0;%默认不写入
             end
