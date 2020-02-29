@@ -445,6 +445,39 @@ classdef EarthquakWave<handle&matlab.mixin.Copyable
             o=EarthquakWave(tn,accn,'m/s^2','恒定波');
         end
         
+        function obj=LoadFromFile1(note,unit,filename,fmt,lineomit,width,timeint)
+            %width 指定单个数据的长度
+            %timeint 指定时间间隔
+            obj=EarthquakWave();
+            switch char(fmt)
+                case 'acc'
+                    dt=ReadTxt(filename,1,lineomit);
+                    obj.accn=VectorDirection(dt);
+                    obj.tn=[0:length(dt)-1]'*timeint;
+                case 'time&acc'
+                    dt=ReadTxt(filename,2,lineomit);
+                    obj.tn=dt(:,1);
+                    obj.accn=dt(:,2);
+                    
+                case 'matrix1'%矩阵形式的地震波文件 需要把矩阵转化为列向量 格式使用分隔符
+                    dt=ReadTxtWithMatrixFormat(filename,'split',lineomit);
+                    obj.tn=[0:length(dt)-1]'*timeint;
+                    obj.accn=dt;
+                case 'matrix2'%矩阵形式的地震波文件 需要把矩阵转化为列向量 格式使用固定宽度
+                    dt=ReadTxtWithMatrixFormat(filename,'fixedwidth',lineomit,width);
+                    obj.tn=[0:length(dt)-1]'*timeint;
+                    obj.accn=dt;
+                otherwise
+                    error('sd')
+            end
+            
+            validStrings = ["m/s^2","gal","g"];
+            validatestring(string(unit),validStrings);
+            obj.unit=unit;
+            obj.note=note;
+            
+        end
+        
     end
     
     
