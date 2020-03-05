@@ -384,8 +384,10 @@ classdef EarthquakWave<handle&matlab.mixin.Copyable
             
             fid=fopen(path,'w');
             if flag_writeinfo==1
-                fprintf(fid,[obj.note '\r\n']);
-                fprintf(fid,[obj.unit '\r\n']);
+%                 fprintf(fid,[obj.note '\r\n']);
+%                 fprintf(fid,[obj.unit '\r\n']);
+                fprintf(fid,string(obj.note)+ "\r\n");
+                fprintf(fid,string(obj.unit)+ "\r\n");
             end
             
             separator='\t';%·Ö¸ô·û
