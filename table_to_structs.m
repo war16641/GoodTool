@@ -1,5 +1,6 @@
 function structs=table_to_structs(T)
 %把table转成一维结构体数组
+%建议使用内置函数table2strcut
 structs=[];
 vns=T.Properties.VariableNames;
 for i=1:size(T,1)
