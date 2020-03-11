@@ -446,6 +446,26 @@ classdef EarthquakWave<handle&matlab.mixin.Copyable
             accn=A*ones(length(tn),1);
             o=EarthquakWave(tn,accn,'m/s^2','恒定波');
         end
+        function o=MakeTri(f,A,tend,dt,A0)%生成三角波
+            if nargin==4
+                A0=0;
+            end
+            T=1/f;
+            tn=0:dt:tend;
+            accn=zeros(1,length(tn));
+            for i=1:length(tn)
+                t=mod(tn(i),T);
+                if t<0.25*T
+                    accn(i)=LinearInterpolation1(t,[0 0;0.25*T 1]);
+                elseif t<0.75*T
+                    accn(i)=LinearInterpolation1(t,[0.25*T 1;0.75*T -1]);
+                else
+                    accn(i)=LinearInterpolation1(t,[0.75*T -1;T 0]);
+                end
+            end
+            accn=accn*A+A0;
+            o=EarthquakWave(tn,accn,'m/s^2','三角波');
+        end
         
         function obj=LoadFromFile1(note,unit,filename,fmt,lineomit,width,timeint)
             %width 指定单个数据的长度
