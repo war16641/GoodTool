@@ -21,13 +21,14 @@ classdef ModalDispl<handle
                 warning('nyh:error','要求modal工况的使用刚度规格化阵型。')%这个条件不是必须条件。但是刚度规格化可以方便地使用模态坐标表示应变能。
             end
                         %求解模态坐标
-            modeli=lc_m.mode^-1;
+%             modeli=lc_m.mode^-1; %当模态不是求全阶时，这句话会报错
             for timeindex=1:lc_e.rst.timeframe.num
                 tf=lc_e.rst.timeframe.Get('index',timeindex);
                 v=tf.Get('node','displ','all','all');
                 v=v(lc_e.activeindex);%去除无效自由度
                 v=v';%转化为列向量
-                Y=modeli*v;
+                 Y=lc_m.mode\v;
+%                 Y=modeli*v; %当模态不是求全阶时，这句话会报错
                 obj.timeframe.Add(tf.framename,Y);
             end
             

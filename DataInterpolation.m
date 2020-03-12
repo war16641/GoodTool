@@ -7,7 +7,8 @@ yy=[];
 for it=1:length(x)-1
     t=linspace(x(it),x(it+1),2+numadd);
     t(end)=[];
-    r=LinearInterpolation(t,[x(it) x(it+1);y(it) y(it+1)]);
+    %     r=LinearInterpolation(t,[x(it) x(it+1);y(it) y(it+1)]);
+    r=LinearInterpolation1(t,[x(it) y(it);x(it+1) y(it+1)]);
     xx=[xx t];
     yy=[yy r];
 end
