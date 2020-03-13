@@ -8,10 +8,14 @@ classdef LoadCase_Modal<LoadCase
         w%周期信息
         
         generalized_vars double%广义质量 广义刚度 每一行代表一阶
+        %下面的三个属于遗留  被mmr mpmf代替
         modal_participating_mass_ratio double %振型质量参与比 3列 代表ux uy uz，每一行代表每一阶 与sap2000一致
         modal_participation_factor double %振型参与因子 3列 代表ux uy uz，每一行代表每一阶 与sap2000一致。这个值与mode有关，当mode按质量矩阵归一化时，与sap2000完全一致。
         modal_participation_factor1 double %振型参与因子1 激活自由度个数*振型个数 每一列代表一个振型，每一行代表一个自由度 这个值乘以谱值=该自由度的振型分解值
         
+        gamma double %nom * 3
+        mpf double %nom * 3, nom是阶数 3列依次代表ux uy uz
+        mpmr double %nom * 3
         
         R%质量影响列向量 参见《桥梁抗震》 P72
         R1 %质量影响列向量 引入边界条件后
@@ -53,7 +57,31 @@ classdef LoadCase_Modal<LoadCase
             t=obj.mode'*obj.K1*obj.mode;
             obj.generalized_vars(:,2)=diag(t);
             
+            [obj.R,obj.R1]=LoadCase_Earthquake.MakeR(obj);%获取影响向量
             
+            %计算mmr mpmf
+            fx=1;%ux
+            obj.mpf(:,fx)=obj.mode'*obj.M1*obj.R1(:,fx)./obj.generalized_vars(:,1);
+            t=ones(length(obj.activeindex),1)*obj.mpf(:,fx)'.*(obj.M1*obj.mode);
+            t=sum(t);
+            obj.mpmr(:,fx)=t'/sum(t);
+            
+            fx=2;%uy
+            obj.mpf(:,fx)=obj.mode'*obj.M1*obj.R1(:,fx)./obj.generalized_vars(:,1);
+            t=ones(length(obj.activeindex),1)*obj.mpf(:,fx)'.*(obj.M1*obj.mode);
+            t=sum(t);
+            obj.mpmr(:,fx)=t'/sum(t);
+            
+            fx=3;%uz
+            obj.mpf(:,fx)=obj.mode'*obj.M1*obj.R1(:,fx)./obj.generalized_vars(:,1);
+            t=ones(length(obj.activeindex),1)*obj.mpf(:,fx)'.*(obj.M1*obj.mode);
+            t=sum(t);
+            obj.mpmr(:,fx)=t'/sum(t);
+            
+
+            
+            
+            %下面的if代码属于遗留 被mmr mpmf代替
             if obj.arg{1}==length(obj.activeindex)%以下的计算只有在模态求全阶的时候才能执行
                 %振型参与质量比
                 [obj.R,obj.R1]=LoadCase_Earthquake.MakeR(obj);
@@ -104,11 +132,6 @@ classdef LoadCase_Modal<LoadCase
                 
                 
             end
-            
-            
-            
-            
-            
             
             %初始化结果指针
             obj.rst.SetPointer();
