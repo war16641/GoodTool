@@ -15,7 +15,7 @@ classdef LoadCase_Modal<LoadCase
         
         R%质量影响列向量 参见《桥梁抗震》 P72
         R1 %质量影响列向量 引入边界条件后
-
+        
     end
     
     methods
@@ -38,12 +38,12 @@ classdef LoadCase_Modal<LoadCase
                 w1=obj.w(it);
                 mode1=obj.mode(:,it);
                 obj.SetState(mode1);
-%                 u1(obj.activeindex)=mode1;
-%                 f1=obj.K*u1;
+                %                 u1(obj.activeindex)=mode1;
+                %                 f1=obj.K*u1;
                 obj.rst.Add(it,w1,[],[]);
             end
             toc
-
+            
             
             
             %广义变量
@@ -52,56 +52,58 @@ classdef LoadCase_Modal<LoadCase
             obj.generalized_vars(:,1)=diag(t);
             t=obj.mode'*obj.K1*obj.mode;
             obj.generalized_vars(:,2)=diag(t);
-
             
             
-            %振型参与质量比
-            [obj.R,obj.R1]=LoadCase_Earthquake.MakeR(obj);
-            
-            mat_t=obj.R1*[1 0 0]';%1方向 ux
-            mass_vec=obj.M1*mat_t;%每个自由度上的质量
-            t1=obj.mode'*obj.M1*mat_t;
-            mass_parti=repmat(t1,1,obj.arg{1})'.*repmat(mass_vec,1,obj.arg{1}) .*obj.mode;
-            tt1=[sum(mass_parti)/sum(mass_vec)]';
-            
-            mat_t=obj.R1*[0 1 0]';%2方向 uy
-            mass_vec=obj.M1*mat_t;%每个自由度上的质量
-            t1=obj.mode'*obj.M1*mat_t;
-            mass_parti=repmat(t1,1,obj.arg{1})'.*repmat(mass_vec,1,obj.arg{1}) .*obj.mode;
-            tt2=[sum(mass_parti)/sum(mass_vec)]';
-            
-            mat_t=obj.R1*[0 0 1]';%3方向 uz
-            mass_vec=obj.M1*mat_t;%每个自由度上的质量
-            t1=obj.mode'*obj.M1*mat_t;
-            mass_parti=repmat(t1,1,obj.arg{1})'.*repmat(mass_vec,1,obj.arg{1}) .*obj.mode;
-            tt3=[sum(mass_parti)/sum(mass_vec)]';
-            
-            obj.modal_participating_mass_ratio=[tt1 tt2 tt3];
-            
-            
-            %振型参与因子
-            obj.modal_participation_factor=zeros(obj.arg{1},3);
-            for i =1:obj.arg{1}
-                obj.modal_participation_factor(i,:)=obj.mode(:,i)'*obj.M1*obj.R1*[1 0 0;0 1 0;0 0 1];
+            if obj.arg{1}==length(obj.activeindex)%以下的计算只有在模态求全阶的时候才能执行
+                %振型参与质量比
+                [obj.R,obj.R1]=LoadCase_Earthquake.MakeR(obj);
+                
+                mat_t=obj.R1*[1 0 0]';%1方向 ux
+                mass_vec=obj.M1*mat_t;%每个自由度上的质量
+                t1=obj.mode'*obj.M1*mat_t;
+                mass_parti=repmat(t1,1,obj.arg{1})'.*repmat(mass_vec,1,obj.arg{1}) .*obj.mode;
+                tt1=[sum(mass_parti)/sum(mass_vec)]';
+                
+                mat_t=obj.R1*[0 1 0]';%2方向 uy
+                mass_vec=obj.M1*mat_t;%每个自由度上的质量
+                t1=obj.mode'*obj.M1*mat_t;
+                mass_parti=repmat(t1,1,obj.arg{1})'.*repmat(mass_vec,1,obj.arg{1}) .*obj.mode;
+                tt2=[sum(mass_parti)/sum(mass_vec)]';
+                
+                mat_t=obj.R1*[0 0 1]';%3方向 uz
+                mass_vec=obj.M1*mat_t;%每个自由度上的质量
+                t1=obj.mode'*obj.M1*mat_t;
+                mass_parti=repmat(t1,1,obj.arg{1})'.*repmat(mass_vec,1,obj.arg{1}) .*obj.mode;
+                tt3=[sum(mass_parti)/sum(mass_vec)]';
+                
+                obj.modal_participating_mass_ratio=[tt1 tt2 tt3];
+                
+                
+                %振型参与因子
+                obj.modal_participation_factor=zeros(obj.arg{1},3);
+                for i =1:obj.arg{1}
+                    obj.modal_participation_factor(i,:)=obj.mode(:,i)'*obj.M1*obj.R1*[1 0 0;0 1 0;0 0 1];
+                end
+                
+                
+                
+                
+                
+                %振型参与因子1
+                obj.modal_participation_factor1=zeros(length(obj.activeindex)  ,obj.arg{1});
+                for i =1:obj.arg{1}
+                    t=obj.modal_participation_factor(i,:);
+                    t=[t 0 0 0]';%补充旋转的3个0
+                    t=repmat(t,obj.f.node.ndnum,1);
+                    obj.modal_participation_factor1(:,i)=obj.mode(:,i).*t(obj.activeindex);
+                end
+                
+                
+                
+                
+                
+                
             end
-            
-            
-            
-            
-            
-            %振型参与因子1
-            obj.modal_participation_factor1=zeros(length(obj.activeindex)  ,obj.arg{1});
-            for i =1:obj.arg{1}
-                t=obj.modal_participation_factor(i,:);
-                t=[t 0 0 0]';%补充旋转的3个0
-                t=repmat(t,obj.f.node.ndnum,1);
-                obj.modal_participation_factor1(:,i)=obj.mode(:,i).*t(obj.activeindex);
-            end
-            
-            
-            
-            
-            
             
             
             
@@ -115,8 +117,8 @@ classdef LoadCase_Modal<LoadCase
             
             
             
-
-
+            
+            
         end
         function GetK(obj)
             %K是总刚度矩阵(边界条件处理前) 阶数为6*节点个数
@@ -198,7 +200,7 @@ classdef LoadCase_Modal<LoadCase
                 otherwise
                     error('sd')
             end
-
+            
         end
     end
 end
