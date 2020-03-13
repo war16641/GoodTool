@@ -1,4 +1,4 @@
-function varargout=mult_oper1(func,inputvars,index_of_varible,varargin)
+function varargout=mult_oper(func,inputvars,index_of_varible,varargin)
 %{
 对inputvars中每一个变量执行func运算，index_of_varible为变量在func中参数的第几个位置，参数为varargin
 inputvars必须为cell
