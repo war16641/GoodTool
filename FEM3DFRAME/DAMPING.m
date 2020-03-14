@@ -6,6 +6,7 @@ classdef DAMPING<handle
         lc 
         typename char
         arg cell
+
         
     end
     
@@ -28,6 +29,9 @@ classdef DAMPING<handle
                 case 'matrix'%直接指定C1
                     obj.typename='matrix';
                     obj.arg=varargin(2);
+                case 'xi'%指定每一阶的阻尼比
+                    obj.typename='xi';
+                    obj.arg=varargin(2:end);%模态工况 阻尼比
                 otherwise
                     error('matlab:myerror','未知阻尼类型')
             end
@@ -39,6 +43,22 @@ classdef DAMPING<handle
                     obj.lc.C1=obj.arg{1}*obj.lc.M1+obj.arg{2}*obj.lc.K1;
                 case 'matrix'%直接指定C1
                     obj.lc.C1=obj.arg{1};
+                case 'xi'
+                    xi=obj.arg{2};
+                    lcm=obj.arg{1};
+                    if length(xi)==1%xi只是一个数 默认全阶都是这个阻尼比
+                        xi=ones(lcm.arg{1},1)*xi;
+                    end
+                    assert(length(xi)==lcm.arg{1},'xi必须与模态阶数一致')
+                    
+%                     %以下代码块有问题：当modal工况不是求全阶时又存在无法求矩阵的逆
+%                     %原理来自 结构动力学 克拉夫 P188 式12-48 12-49
+%                     C=xi.*lcm.w.*lcm.generalized_vars(:,1);
+%                     C=diag(2*C);
+%                     obj.lc.C1=(lcm.mode')^-1*C*lcm.mode^-1;
+                    
+                    obj.lc.C1=0*obj.lc.K1;%先用0矩阵顶一顶 放弃阻尼系数矩阵 改使用阻尼比
+                    obj.arg=[obj.arg xi];
                 otherwise
                     error('matlab:myerror','未知阻尼类型')
             end

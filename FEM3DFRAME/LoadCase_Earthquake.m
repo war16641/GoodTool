@@ -46,6 +46,10 @@ classdef LoadCase_Earthquake<LoadCase
                     obj.algorithm='central';
                     obj.func=@obj.CentralDifferenceMethod;
                     obj.arg={};
+                case 'modalcomposition'%振型分解
+                    obj.algorithm='modalcomposition';
+                    obj.func=@obj.ModalComposition;
+                    obj.arg={varargin{2}};
                 otherwise
                     error('matlab:myerror','未知算法')
             end
@@ -637,6 +641,63 @@ classdef LoadCase_Earthquake<LoadCase
              
              %关闭wb
              wb.Close();
+        end
+        function [v,dv,ddv]=ModalComposition(obj)%振型叠加法
+            %目前只能考虑线性结构 没有初位移 没有外荷载
+            K=obj.K1;
+            M=obj.M1;
+            C=obj.C1;
+            R=obj.R1;
+            deadf1=obj.f_ext(obj.activeindex);%恒载 有效自由度
+            tmp=size(K,1);
+            v0=obj.intd.u0(obj.activeindex);
+            dv0=zeros(tmp,1);
+            %             ddv0=zeros(tmp,1);
+
+            time=obj.ei.tn;
+            n=size(K,1);%自由度个数
+            dt=time(2)-time(1);
+                        %% 将地面加速度转化为等效节点荷载
+            timelen=length(time);
+            F=zeros(n,timelen);
+            for it=1:timelen
+                F(:,it)=-M*R*obj.ei.accn(:,it)+deadf1;%这里记得加上恒载力
+            end
+            %% 检查lcm
+            lcm=obj.arg{1};
+            if ~isa(lcm,'LoadCase_Modal')
+                error('matlab:myerror','lcm参数不正确')
+            end
+            %% 准备v dv ddv 和初始值
+            jiesu=lcm.arg{1};%模态个数
+            vm=zeros(jiesu,timelen);
+            dvm=zeros(jiesu,timelen);
+            ddvm=zeros(jiesu,timelen);%这三个都是广义坐标
+            %% 求解
+%             cg=lcm.mode'*C*lcm.mode;
+%             cg=diag(cg);%计算广义阻尼
+            xi=obj.damp.arg{3};%阻尼比
+            for jn=1:jiesu
+                pn=lcm.mode(:,jn)'*F;%广义荷载
+                [tn,v1,dv1,ddv1]=SegmentalPrecision1_SDOF(lcm.generalized_vars(jn,2),lcm.generalized_vars(jn,1),time,pn,'ratio',xi(jn),0,0);
+                vm(jn,:)=v1;
+                dvm(jn,:)=dv1;
+                ddvm(jn,:)=ddv1;
+            end
+            %% 广义位移组装实际位移
+            v=lcm.mode*vm;%zeros(n,timelen);
+            dv=lcm.mode*dvm;%zeros(n,timelen);
+            ddv=lcm.mode*ddvm;%zeros(n,timelen);
+            %% 设置状态
+            wb=MyWaitbar('时程工况计算','FEM3DFRAME');
+            wb.maxcouter=timelen/20;
+            for it=2:timelen
+                wb.text=['时程工况计算' num2str(it) '/' num2str(timelen)];
+                wb.x=it/timelen;
+                obj.SetState(v(:,it),dv(:,it),ddv(:,it));
+                obj.rst.AddByState(time(it),'time');
+            end
+            wb.Close();
         end
     end
     

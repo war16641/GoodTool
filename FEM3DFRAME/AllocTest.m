@@ -1685,5 +1685,58 @@ classdef AllocTest < matlab.perftest.TestCase   % 性能测试的公共父类
 
 
         end
+        
+        function test_verifymodel_35(testcase)%测试地震工况 振型分解
+            f=FEM3DFRAME();
+            for i=1:11
+                f.node.AddByCartesian(i,0,(i-1)*2,0);%11个节点
+            end
+            f.node.AddByCartesian(12,0,20.1,0);%12个节点
+            
+            
+            f.manager_mat.Add(32.5e6,0.2,2.55,'concrete');
+            mat=f.manager_mat.GetByIdentifier('concrete');
+            sec=SECTION('ver',mat,2.5447,0.5153,0.5153,1.0306);%截面 来源于sap2000
+            f.manager_sec.Add(sec);
+            
+            for i=1:10
+                tmp=ELEMENT_EULERBEAM(f,0,[i i+1],sec,[0 0 1]);%指定z方向为-y方向
+                f.manager_ele.Add(tmp);
+            end
+            
+            tmp=ELEMENT_MASS(f,0,12,[1 1 1 0 0 0]*500);%添加质量
+            f.manager_ele.Add(tmp);
+            tmp=ELEMENT_SPRING(f,0,[11 12],[10e6 4000 4000 0 0 0]);
+            f.manager_ele.Add(tmp);
+            
+            
+            lc=LoadCase_Modal(f,'modal');
+            f.manager_lc.Add(lc);
+            lc.arg{1}=21;
+            lc.arg{2}='k';
+            lc.AddBC('displ',[1 1 0;1 2 0;1 3 0;1 4 0;1 5 0;1 6 0]);
+            for i=1:12
+                lc.AddBC('displ',[i 2 0;i 3 0;i 4 0;i 5 0]);
+            end
+            lc.Solve();
+            lc.rst.PrintPeriodInfo()%与sap拟合度还可以
+            
+            
+            
+            lce=LoadCase_Earthquake(f,'eq');
+            lce.CloneBC(lc);
+            f.manager_lc.Add(lce);
+            ew=EarthquakWave.LoadFromFile1('el','m/s^2',"E:\我的文档\MATLAB\GoodTool\FEM3DFRAME\测试所需数据\elcentro-st.th",'time&acc',2);
+            ew.PointInterpolation(1);
+            ew.FillZeros(40);
+            ei=EarthquakeInput(lce,'landers',ew,1,0);
+            lce.AddEarthquakeInput(ei);
+            lce.SetAlgorithm('modalcomposition',lc);
+            lce.damp.Set('xi',lc,0);
+            lce.Solve();
+            [up,tn]=lce.rst.GetTimeHistory(0,40,'node','displ',11,1);
+            testcase.verifyEqual(max(up),0.0099131,'AbsTol',0.0001);
+            testcase.verifyEqual(min(up),-0.010048,'AbsTol',0.0001);
+        end
     end
 end
