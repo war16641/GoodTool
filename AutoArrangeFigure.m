@@ -18,7 +18,8 @@ classdef AutoArrangeFigure<handle
             obj.n=n;
             obj.i=0;
             obj.width=1920/m;
-            obj.height=1080/n;
+%             obj.height=1080/n;
+            obj.height=900/n;
             obj.m1=0;
             obj.n1=1;
         end

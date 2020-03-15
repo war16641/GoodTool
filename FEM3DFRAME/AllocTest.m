@@ -1571,6 +1571,10 @@ classdef AllocTest < matlab.perftest.TestCase   % 性能测试的公共父类
             legend('地震工况原值','分解和')
             testcase.verifyTrue(norm(vn-uhe)<1e-7,'分解前后存在误差')
             
+            %验证GetTimeHistory
+            [maxY,YY,eng]=md.PlotData(2);
+            [r,tn]=md.GetTimeHistory(0,40,'v',2);
+            testcase.assertEqual( std(YY(:,2)-r),0,'abstol',1e-7)
             
             
             

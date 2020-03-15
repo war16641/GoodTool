@@ -5,6 +5,8 @@ classdef ModalDispl<handle
         lc_m LoadCase_Modal%模态工况
         lc_e LoadCase_Earthquake %地震工况
         timeframe
+        timeframe_dv
+        timeframe_ddv%三个都是管理器 分布存放广义坐标的位移 速度 加速度 每一个数据点代表一个时刻的所有阶数的广义位移
     end
     
     methods
@@ -12,6 +14,8 @@ classdef ModalDispl<handle
             obj.lc_m=lc_m;
             obj.lc_e=lc_e;
             obj.timeframe=VCM.VALUE_CLASS_MANAGER_UNIQUE_SORTED();
+            obj.timeframe_dv=VCM.VALUE_CLASS_MANAGER_UNIQUE_SORTED();
+            obj.timeframe_ddv=VCM.VALUE_CLASS_MANAGER_UNIQUE_SORTED();
             %首先验证两者的activeindex是否一致
             if norm(lc_m.activeindex-lc_e.activeindex)~=0
                 error('nyh:error','要求modal工况的有效自由度和本工况一致，不一致可能是边界条件不同导致的。')
@@ -30,6 +34,18 @@ classdef ModalDispl<handle
                  Y=lc_m.mode\v;
 %                 Y=modeli*v; %当模态不是求全阶时，这句话会报错
                 obj.timeframe.Add(tf.framename,Y);
+                
+                v=tf.Get('node','displ','all','all','vel');
+                v=v(lc_e.activeindex);%去除无效自由度
+                v=v';%转化为列向量
+                Y=lc_m.mode\v;
+                obj.timeframe_dv.Add(tf.framename,Y);
+                
+                v=tf.Get('node','displ','all','all','acc');
+                v=v(lc_e.activeindex);%去除无效自由度
+                v=v';%转化为列向量
+                Y=lc_m.mode\v;
+                obj.timeframe_ddv.Add(tf.framename,Y);
             end
             
 
@@ -80,6 +96,38 @@ classdef ModalDispl<handle
                 u_comp(i,:)=obj.lc_m.mode(nd_xuhao1,:).*obj.timeframe.Get('index',i)';
             end
             tn=obj.lc_e.ei.ew.tn;
+        end
+        
+        function [r,tn]=GetTimeHistory(obj,t1,t2,type,modalnum)
+            switch type
+                case 'v'
+                    tf=obj.timeframe;
+                case 'dv'
+                    tf=obj.timeframe_dv;
+                case 'ddv'
+                    tf=obj.timeframe_ddv;%依次是位移速度加速度
+                otherwise
+                    error('参数错误')
+            end
+            [ind1,index1]=obj.timeframe.FindId(t1);
+            [ind2,index2]=obj.timeframe.FindId(t2);%查找起始和结束结果序号
+            if index1==0
+                index1=1;
+            end
+            index1=max([ind1 index1]);
+            index2=max([ind2 index2]);
+            numline=index2-index1+1;%结果帧个数
+            
+            assert(modalnum<=obj.lc_m.arg{1},'振型阶数超过计算的最大振型数')
+            
+            r=zeros(numline,1);
+            tn=zeros(numline,1);
+            for it=index1:index2
+                [tmp,id]=tf.Get('index',it);
+                r1=tmp(modalnum);
+                r(it)=r1;
+                tn(it)=id;
+            end
         end
     end
     methods(Static)
