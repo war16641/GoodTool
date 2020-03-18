@@ -20,7 +20,7 @@ classdef ScatterWithTips<handle
         end
         function fig=show(obj)
             fig=figure;
-            plot(obj.x,obj.y,'.')
+            plot(obj.x,obj.y,'k.')
             dcm_obj = datacursormode(fig);
             set(dcm_obj,'DisplayStyle','datatip','SnapToDataVertex','off','Enable','on');
             set(dcm_obj,'UpdateFcn',@obj.showtip);

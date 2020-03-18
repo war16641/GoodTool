@@ -7,7 +7,7 @@ classdef ResultFrame<handle
         rst Result
         ndrst NodeResultFrame
         elerst EleResultFrame
-        engrst%结构的能量
+        engrst%结构的能量 %势能 动能 滞回耗能
     end
     
     methods

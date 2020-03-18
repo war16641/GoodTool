@@ -426,6 +426,22 @@ classdef EarthquakWave<handle&matlab.mixin.Copyable
             obj.tn=[obj.tn;t(:,1)];
             obj.accn=[obj.accn;t(:,2)];
         end
+        function DrawPower(obj,logscale)%显示功率
+            %功率定义如下：
+            %f(t)是信号 功率=f(t)^2
+            %https://www.docin.com/p-629871284.html
+            %能量随时间关系 E(t)=int(f(x)^2,x-inf,t) 所以功率=diff(E,t)=f(t)^2
+            t=cumtrapz(obj.tn,obj.accn.^2);
+            t1=t;
+            t1(2:end)=t1(2:end)-t(1:end-1);%错位相减
+            figure
+            plot(obj.tn,t1);
+            title('功率')
+            if nargin==2 && logscale==1
+                set(gca,'yscale','log')
+            end
+            
+        end
     end
     methods(Static)
         function o=MakeSin(f,A,tend,dt,A0)
