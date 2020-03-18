@@ -442,6 +442,34 @@ classdef EarthquakWave<handle&matlab.mixin.Copyable
             end
             
         end
+        function [fs,P1_amp,P1_phs,P2_amp,P2_phs]=fft(obj,plotflag)%傅里叶变换 得幅值谱和相位谱
+            obj.SwitchUnit();
+            Fs=1/(obj.tn(2)-obj.tn(1));%采用频率
+            if mod(obj.numofpoint,2)==1
+                obj.tn=[];obj.accn=[];%自动舍弃末尾 以保证数据点为偶数个
+            end
+            Y=fft(obj.accn);
+            P2_amp=abs(Y/obj.numofpoint);%幅值的双边谱
+            P1_amp=P2_amp(1:obj.numofpoint/2+1);%幅值单边谱
+            P1_amp(2:end-1)=2*P1_amp(2:end-1);%幅值双边谱是对称的 因此取单边谱时需要两倍 对称轴是numofpoint/2+1这个点对应的线
+            
+            P2_phs=angle(Y);%相位的双边谱 针对余弦的相位
+            P1_phs=P2_phs(1:obj.numofpoint/2+1);%相位的单边谱 ，是中心对称的 不需要两倍 对称点也是numofpoint/2+1这个点
+            
+            fs=Fs*(0:obj.numofpoint/2)/obj.numofpoint;
+            if plotflag
+                figure
+                yyaxis left
+                plot(fs,P1_amp);
+                ylabel('Amplitude')
+                hold on
+                yyaxis right
+                plot(fs,P1_phs);
+                ylabel('Phase/rad')
+                legend('幅值','相位')
+                xlabel('f/Hz')
+            end
+        end
     end
     methods(Static)
         function o=MakeSin(f,A,tend,dt,A0)
@@ -515,7 +543,31 @@ classdef EarthquakWave<handle&matlab.mixin.Copyable
             obj.note=note;
             
         end
-        
+        function o=MakeIfft_double(P2_amp,P2_phs,Fs)%通过nfft生成波 双边谱
+            L=length(P2_amp);%数据点个数
+            Y=P2_amp*L.*exp(1i*P2_phs);
+            X=ifft(Y);
+            o=EarthquakWave((0:L-1)*1/Fs,X,'m/s^2','nfft生成波');
+        end
+        function o=MakeIfft_single(P1_amp,P1_phs,Fs)%通过nfft生成反应谱 单边谱
+            P1_amp=VectorDirection(P1_amp);
+            P1_phs=VectorDirection(P1_phs);
+            L=2*(length(P1_amp)-1);%数据点个数
+            %补齐幅值谱
+            P1_amp(2:end-1)=P1_amp(2:end-1)/2;
+            t=P1_amp(end:-1:1);
+            t(1)=[];
+            t(end)=[];
+            P2_amp=[P1_amp ;t];
+            %补齐相位谱
+            t=-P1_phs(end:-1:1);
+            t(1)=[];
+            t(end)=[];
+            P2_phs=[P1_phs ;t];
+            %调用双边谱
+            o=EarthquakWave.MakeIfft_double(P2_amp,P2_phs,Fs);
+
+        end
     end
     
     
