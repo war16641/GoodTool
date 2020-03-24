@@ -209,7 +209,7 @@ classdef LoadCase_Modal<LoadCase
             
             w=sqrt(diag(D));
             %规格化振型
-            switch fmt
+            switch string(fmt)
                 case 'm'
                     for it=1:nummode
                         mn=mode(:,it)'*m*mode(:,it);
@@ -220,6 +220,10 @@ classdef LoadCase_Modal<LoadCase
                         mn=0.5*mode(:,it)'*k*mode(:,it);
                         mode(:,it)=mode(:,it)/sqrt(mn);
                     end
+                case "max"
+                    t=max(abs(mode));
+                    t=repmat(t,[size(k,1) 1]);
+                    mode=mode./t;
                 otherwise
                     error('sd')
             end

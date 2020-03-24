@@ -313,7 +313,8 @@ classdef EarthquakWave<handle&matlab.mixin.Copyable
                 flag_draw=1;%默认做图
             end
             Fs=1/(obj.tn(2)-obj.tn(1));%用前两个数求频率
-            [power,f]=periodogram(obj.accn,ones(length(obj.accn),1),length(obj.accn),Fs); %直接法
+%             [power,f]=periodogram(obj.accn,ones(length(obj.accn),1),length(obj.accn),Fs); %直接法
+[power,f]=periodogram(obj.accn,ones(length(obj.accn),1),2^nextpow2(obj.numofpoint),Fs); %直接法
             if isequal(flag_draw,1)%做图
                 figure;
                 plot(f,power);
@@ -409,7 +410,8 @@ classdef EarthquakWave<handle&matlab.mixin.Copyable
             %找到x上下点
             for i=1:length(obj.tn)
                 if x<obj.tn(i)
-                    r=LinearInterpolation(x,[obj.tn(i-1) obj.tn(i);obj.accn(i-1) obj.accn(i)]);
+%                     r=LinearInterpolation(x,[obj.tn(i-1) obj.tn(i);obj.accn(i-1) obj.accn(i)]);
+                    r=LinearInterpolation1(x,[obj.tn(i-1) obj.accn(i-1);obj.tn(i) obj.accn(i)]);
                     return
                 end
             end
@@ -430,7 +432,7 @@ classdef EarthquakWave<handle&matlab.mixin.Copyable
             %功率定义如下：
             %f(t)是信号 功率=f(t)^2
             %https://www.docin.com/p-629871284.html
-            %能量随时间关系 E(t)=int(f(x)^2,x-inf,t) 所以功率=diff(E,t)=f(t)^2
+            %能量随时间关系 E(t)=int(f(x)^2,x,-inf,t) 所以功率=diff(E,t)=f(t)^2
             t=cumtrapz(obj.tn,obj.accn.^2);
             t1=t;
             t1(2:end)=t1(2:end)-t(1:end-1);%错位相减
@@ -440,13 +442,26 @@ classdef EarthquakWave<handle&matlab.mixin.Copyable
             if nargin==2 && logscale==1
                 set(gca,'yscale','log')
             end
+            figure
+            plot(obj.tn,t);
+            ylabel('能量')
             
         end
-        function [fs,P1_amp,P1_phs,P2_amp,P2_phs]=fft(obj,plotflag)%傅里叶变换 得幅值谱和相位谱
+        function [fs,P1_amp,P1_phs,P2_amp,P2_phs]=fft(obj,xtext,plotflag)%傅里叶变换 得幅值谱和相位谱
+            %https://blog.csdn.net/wordwarwordwar/article/details/62078726
+            %得到的幅值和相位是有误差的
+            %相位是针对cos函数而言 单位rad
+            if nargin==1
+                xtext='f';%默认频率为hz
+                plotflag=1;%做图
+            elseif nargin==2
+                plotflag=1;%做图
+            end
             obj.SwitchUnit();
-            Fs=1/(obj.tn(2)-obj.tn(1));%采用频率
+            Fs=1/(obj.tn(2)-obj.tn(1));%采用频率 
+%             fprintf('频谱分辨率%f',Fs/obj.numofpoint);%Fs/numofpoint是频谱分辨率
             if mod(obj.numofpoint,2)==1
-                obj.tn=[];obj.accn=[];%自动舍弃末尾 以保证数据点为偶数个
+                obj.tn(end)=[];obj.accn(end)=[];%自动舍弃末尾 以保证数据点为偶数个
             end
             Y=fft(obj.accn);
             P2_amp=abs(Y/obj.numofpoint);%幅值的双边谱
@@ -457,18 +472,31 @@ classdef EarthquakWave<handle&matlab.mixin.Copyable
             P1_phs=P2_phs(1:obj.numofpoint/2+1);%相位的单边谱 ，是中心对称的 不需要两倍 对称点也是numofpoint/2+1这个点
             
             fs=Fs*(0:obj.numofpoint/2)/obj.numofpoint;
+            if string(xtext)=="f"%用频率标识
+                xticks=fs;
+                xla='f/Hz';
+            elseif string(xtext)=="T" ||string(xtext)=="t"
+                xticks=1./fs;
+                xla='T/s';
+            end
             if plotflag
                 figure
                 yyaxis left
-                plot(fs,P1_amp);
+                plot(xticks,P1_amp);
                 ylabel('Amplitude')
                 hold on
                 yyaxis right
-                plot(fs,P1_phs);
+                plot(xticks,P1_phs);
                 ylabel('Phase/rad')
                 legend('幅值','相位')
-                xlabel('f/Hz')
+                xlabel(xla)
+                title(obj.note)
             end
+        end
+        function FilterPointByTime(obj,lowtime,hightime)%保留两个时间点中间的数据（含端点） 其余删除
+            t=and(obj.tn>=lowtime,obj.tn<=hightime);
+            obj.tn=obj.tn(t);
+            obj.accn=obj.accn(t);
         end
     end
     methods(Static)
@@ -540,6 +568,9 @@ classdef EarthquakWave<handle&matlab.mixin.Copyable
             validStrings = ["m/s^2","gal","g"];
             validatestring(string(unit),validStrings);
             obj.unit=unit;
+            if string(note)=='fromfile'%从文件名中获取
+                [~,note,~]=fileparts(filename);
+            end
             obj.note=note;
             
         end
