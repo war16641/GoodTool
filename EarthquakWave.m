@@ -321,7 +321,7 @@ classdef EarthquakWave<handle&matlab.mixin.Copyable
                 set(gca,'yscale','log');%改为对数坐标
                 xlabel('频率/Hz');
                 ylabel('psd');
-                title('psd');
+                title(obj.note);
             else
                 %不做图
             end
@@ -480,17 +480,28 @@ classdef EarthquakWave<handle&matlab.mixin.Copyable
                 xla='T/s';
             end
             if plotflag
+%                 figure
+%                 yyaxis left
+%                 plot(xticks,P1_amp);
+%                 ylabel('Amplitude')
+%                 hold on
+%                 yyaxis right
+%                 plot(xticks,P1_phs);
+%                 ylabel('Phase/rad')
+%                 legend('幅值','相位')
+%                 xlabel(xla)
+% %                 title(obj.note)
+%                 title(sprintf('%s,△f=%fHz',obj.note,Fs/obj.numofpoint))
+                
+                %分开显示幅值和相位
                 figure
-                yyaxis left
                 plot(xticks,P1_amp);
-                ylabel('Amplitude')
-                hold on
-                yyaxis right
+                ylabel('幅值');xlabel('f/Hz');
+                title(sprintf('%s,△f=%fHz',obj.note,Fs/obj.numofpoint))
+                figure
                 plot(xticks,P1_phs);
-                ylabel('Phase/rad')
-                legend('幅值','相位')
-                xlabel(xla)
-                title(obj.note)
+                ylabel('相位/Rad');xlabel('f/Hz');
+                title(sprintf('%s,△f=%fHz',obj.note,Fs/obj.numofpoint))
             end
         end
         function FilterPointByTime(obj,lowtime,hightime)%保留两个时间点中间的数据（含端点） 其余删除
@@ -577,7 +588,7 @@ classdef EarthquakWave<handle&matlab.mixin.Copyable
         function o=MakeIfft_double(P2_amp,P2_phs,Fs)%通过nfft生成波 双边谱
             L=length(P2_amp);%数据点个数
             Y=P2_amp*L.*exp(1i*P2_phs);
-            X=ifft(Y);
+            X=ifft(Y);%在某些情况下（待研究 ）X会是复数
             o=EarthquakWave((0:L-1)*1/Fs,X,'m/s^2','nfft生成波');
         end
         function o=MakeIfft_single(P1_amp,P1_phs,Fs)%通过nfft生成反应谱 单边谱
@@ -598,6 +609,40 @@ classdef EarthquakWave<handle&matlab.mixin.Copyable
             %调用双边谱
             o=EarthquakWave.MakeIfft_double(P2_amp,P2_phs,Fs);
 
+        end
+        function o=MakeSinComposition(A,Fs,fai0,L)
+            %使用三角波合成 
+            %已知各个频率的幅值,是ew 相位(如果没有就随机生成)，是序列
+            %Fs是采样频率 hz
+            %L 数据长度
+            L=2^nextpow2(L);
+            dF=Fs/L;%三角波的间隔频率
+            F=0:dF:Fs/2;%三角波的频率 0必定是下限频率 Fs/2必定是上限频率
+            numofwave=length(F);%三角波数量
+            if string(fai0)=='random'
+                %随机生成谱
+                fai0=rand(1,numofwave)*2*pi;
+                fai0(1)=pi/2;%第一个频率是0 因而默认相位是90度 以保证均值为0
+            end
+            if abs(fai0(1)-pi/2)>1e-6
+                warning('频率为0的相位角不等于pi/2,这将导致均值不等于0')
+            end
+            ts=(0:L-1)*1/Fs;
+            x=zeros(1,L);
+            %合成波
+            for i=1:numofwave
+                fnow=F(i);%当前频率
+                x=x+A.GetSimilarValue(fnow)*(cos(2*pi*fnow*ts+fai0(i)));
+            end
+            o=EarthquakWave(ts,x,'m/s^2','三角波叠加');
+        end
+        function o=MakePSD(S,Fs,L)
+            %从功率谱拟合 功率谱自变量单位是hz
+            L=2^nextpow2(L);
+            dF=Fs/L;%三角波的间隔频率
+            A=EarthquakWave(S.tn,S.accn);
+            A.accn=sqrt(2*dF*S.accn);
+            o=EarthquakWave.MakeSinComposition(A,Fs,'random',L);
         end
     end
     
