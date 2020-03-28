@@ -8,6 +8,7 @@ classdef EarthquakWave<handle&matlab.mixin.Copyable
         unit%加速度单位
         note%添加注释用
         numofpoint%点个数
+        peakpoint%峰值点
         
         spectralvalue_sd%sd谱值 第一列表示周期 第二列表示谱值
         spectralvalue_psv
@@ -329,6 +330,11 @@ classdef EarthquakWave<handle&matlab.mixin.Copyable
         function r=get.numofpoint(obj)
             r=length(obj.tn);
         end
+        function r=get.peakpoint(obj)%获取峰值 绝对值最大的点
+            %返回 [峰值时刻 峰值]
+            [v,i]=AbsMax(obj.accn);
+            r=[obj.tn(i) v];
+        end
         function StandardizeScale(obj)%标准化尺度 将地震波的峰值设为+1
             obj.SwitchUnit();
             tmp=AbsMax(obj.accn);
@@ -508,6 +514,9 @@ classdef EarthquakWave<handle&matlab.mixin.Copyable
             t=and(obj.tn>=lowtime,obj.tn<=hightime);
             obj.tn=obj.tn(t);
             obj.accn=obj.accn(t);
+        end
+        function o=CopyOne(obj)
+            o=EarthquakWave(obj.tn,obj.accn,obj.unit,obj.note);
         end
     end
     methods(Static)
