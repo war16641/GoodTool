@@ -73,8 +73,13 @@ classdef Earthqauk_MANAGER<HCM.HANDLE_CLASS_MANAGER
             legend(le)
        
         end
-        function ComparePSD(obj,ax)
+        function ComparePSD(obj,smoothn,ax)
             if nargin==1
+                figure;
+                axes;
+                hold on
+                smoothn=0;
+            elseif nargin==2
                 figure;
                 axes;
                 hold on
@@ -86,7 +91,7 @@ classdef Earthqauk_MANAGER<HCM.HANDLE_CLASS_MANAGER
             le={};
             for it=1:obj.num
                 [p,f]=obj.objects(it).PSD(0);
-                plot(f,p);
+                plot(f,smooth(p,smoothn));
                 le=[le obj.objects(it).note];
             end
             title('PSD');
