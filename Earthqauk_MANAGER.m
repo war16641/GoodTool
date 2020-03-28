@@ -3,7 +3,7 @@ classdef Earthqauk_MANAGER<HCM.HANDLE_CLASS_MANAGER
     %   此处显示详细说明
     
     properties
-        
+        peakvalue %各个地震波的峰值加速度
     end
     
     methods
@@ -28,6 +28,14 @@ classdef Earthqauk_MANAGER<HCM.HANDLE_CLASS_MANAGER
 
 
 
+        end
+        function LoadFromFile1(obj,filenamecell,varargin)
+            %filenamecell 字符串细胞
+            %varargin输入给EarthquakWave.LoadFromFile1后续的参数
+            for it=1:length(filenamecell)
+                ew=EarthquakWave.LoadFromFile1('fromfile','m/s^2',filenamecell{it},varargin{:});
+                obj.Add(ew);
+            end
         end
         function CompareResponseSpectra(obj,periodstart,periodend,type,dampratio,num)%比较反应谱
             %periodstart
@@ -97,6 +105,12 @@ classdef Earthqauk_MANAGER<HCM.HANDLE_CLASS_MANAGER
             title('时程加速度');
             xlabel('时间');
             legend(le);
+        end
+        function r=get.peakvalue(obj)
+            r=zeros(obj.num,1);
+            for it=1:obj.num
+                r(it)=obj.GetByIndex(it).peakpoint(2);
+            end
         end
     end
 end
